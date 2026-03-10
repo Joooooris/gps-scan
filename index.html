@@ -7,12 +7,11 @@
 
 <style>
 body{
-font-family: Arial;
-padding:30px;
-font-size:22px;
+  font-family: Arial, sans-serif;
+  padding: 30px;
+  font-size: 22px;
 }
 </style>
-
 </head>
 
 <body>
@@ -20,80 +19,86 @@ font-size:22px;
 <p id="status">Chargement...</p>
 
 <script>
-
 const params = new URLSearchParams(window.location.search)
 const qr = params.get("qr")
 
 const WORKER_URL = "https://calm-unit-e415.j-simon.workers.dev"
+const RETURN_URL = "https://lmfq8v34u.budibase.app/app/testcbc/test"
 
 function setStatus(message){
-document.getElementById("status").innerText = message
-console.log(message)
+  document.getElementById("status").innerText = message
+  console.log(message)
+}
+
+function finishAndReturn() {
+  setTimeout(() => {
+    // 1) on essaie de fermer
+    window.close()
+
+    // 2) si le navigateur refuse, on revient en arrière
+    setTimeout(() => {
+      if (window.history.length > 1) {
+        window.history.back()
+      } else {
+        // 3) sinon redirection directe vers Budibase
+        window.location.href = RETURN_URL
+      }
+    }, 300)
+  }, 1200)
 }
 
 if(!navigator.geolocation){
+  setStatus("Géolocalisation non disponible")
+} else {
+  setStatus("Récupération GPS...")
 
-setStatus("Géolocalisation non disponible")
+  navigator.geolocation.getCurrentPosition(
 
-}else{
+    async function(position){
 
-setStatus("Récupération GPS...")
+      const payload = {
+        qr_code: qr,
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        timestamp: new Date().toISOString()
+      }
 
-navigator.geolocation.getCurrentPosition(
+      setStatus("Position trouvée, envoi...")
 
-async function(position){
+      try{
+        const response = await fetch(WORKER_URL,{
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify(payload)
+        })
 
-const payload = {
+        const data = await response.json()
 
-qr_code: qr,
-latitude: position.coords.latitude,
-longitude: position.coords.longitude,
-timestamp: new Date().toISOString()
+        setStatus("Activité enregistrée ✔")
+        console.log(data)
 
+        finishAndReturn()
+
+      } catch(error){
+        setStatus("Erreur : " + error.message)
+      }
+
+    },
+
+    function(error){
+      setStatus("Erreur GPS : " + error.message)
+    },
+
+    {
+      enableHighAccuracy:true,
+      timeout:20000,
+      maximumAge:30000
+    }
+  )
 }
-
-setStatus("Position trouvée, envoi...")
-
-try{
-
-const response = await fetch(WORKER_URL,{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify(payload)
-})
-
-const data = await response.json()
-
-setStatus("Succès : " + JSON.stringify(data))
-
-}catch(error){
-
-setStatus("Erreur : " + error.message)
-
-}
-
-},
-
-function(error){
-
-setStatus("Erreur GPS : " + error.message)
-
-},
-
-{
-enableHighAccuracy:true,
-timeout:20000,
-maximumAge:30000
-}
-
-)
-
-}
-
 </script>
 
 </body>
-
 </html>
