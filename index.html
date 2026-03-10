@@ -12,7 +12,7 @@
     const params = new URLSearchParams(window.location.search);
     const qr = params.get("qr");
 
-    const WEBHOOK_URL = "https://lmfq8v34u.budibase.app/api/webhooks/trigger/app_lmfq8v34u_f6e673d060084ab0a91870e76203b900/wh_0d7aa4b5c57c4aa595792064c9c4c30a";
+    const WORKER_URL = "https://calm-unit-e415.j-simon.workers.dev";
 
     function setStatus(message) {
       document.getElementById("status").innerText = message;
@@ -36,7 +36,7 @@
           setStatus("Position trouvée, envoi...");
 
           try {
-            await fetch(WEBHOOK_URL, {
+            await fetch(WORKER_URL, {
               method: "POST",
               mode: "no-cors",
               headers: {
@@ -63,3 +63,4 @@
   </script>
 </body>
 </html>
+
