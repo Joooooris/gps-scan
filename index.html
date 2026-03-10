@@ -4,16 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GPS + Webhook</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      font-size: 20px;
-    }
-  </style>
 </head>
 <body>
-  <p id="status">Page chargée...</p>
+  <p id="status">Chargement...</p>
 
   <script>
     const params = new URLSearchParams(window.location.search);
@@ -26,8 +19,6 @@
       console.log(message);
     }
 
-    setStatus("Début du script");
-
     if (!navigator.geolocation) {
       setStatus("La géolocalisation n'est pas disponible.");
     } else {
@@ -35,35 +26,26 @@
 
       navigator.geolocation.getCurrentPosition(
         async function(position) {
-          const latitude = position.coords.latitude;
-          const longitude = position.coords.longitude;
-          const timestamp = new Date().toISOString();
-
-          setStatus("Position trouvée, envoi au webhook...");
-
           const payload = {
             qr_code: qr,
-            latitude: latitude,
-            longitude: longitude,
-            timestamp: timestamp
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            timestamp: new Date().toISOString()
           };
 
+          setStatus("Position trouvée, envoi...");
+
           try {
-            const response = await fetch(WEBHOOK_URL, {
+            await fetch(WEBHOOK_URL, {
               method: "POST",
+              mode: "no-cors",
               headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "text/plain"
               },
               body: JSON.stringify(payload)
             });
 
-            const text = await response.text();
-
-            if (!response.ok) {
-              throw new Error("HTTP " + response.status + " - " + text);
-            }
-
-            setStatus("Position envoyée avec succès");
+            setStatus("Requête envoyée");
           } catch (error) {
             setStatus("Erreur webhook : " + error.message);
           }
@@ -81,4 +63,3 @@
   </script>
 </body>
 </html>
-
