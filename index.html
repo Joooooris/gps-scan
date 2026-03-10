@@ -1,57 +1,52 @@
-<script>
-const params = new URLSearchParams(window.location.search)
-const qr = params.get("qr")
-
-function setStatus(message) {
-  document.getElementById("status").innerText = message
-}
-
-if (!navigator.geolocation) {
-  setStatus("La géolocalisation n'est pas disponible sur cet appareil.")
-} else {
-  setStatus("Récupération de la position...")
-
-  navigator.geolocation.getCurrentPosition(
-    function(position) {
-      const latitude = position.coords.latitude
-      const longitude = position.coords.longitude
-
-      setStatus("Position trouvée, envoi en cours...")
-
-      fetch("https://lmfq8v34u.budibase.app/api/webhooks/schema/app_dev_lmfq8v34u_f6e673d060084ab0a91870e76203b900/wh_0d7aa4b5c57c4aa595792064c9c4c30a", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          qr_code: qr,
-          latitude: latitude,
-          longitude: longitude,
-          timestamp: new Date().toISOString()
-        })
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Erreur HTTP " + response.status)
-        }
-        setStatus("Position envoyée avec succès")
-      })
-      .catch(error => {
-        setStatus("Erreur webhook : " + error.message)
-      })
-    },
-    function(error) {
-      setStatus("Erreur GPS : " + error.message)
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 0
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test GPS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      font-size: 20px;
     }
-  )
-}
-</script>
+  </style>
+</head>
+<body>
+  <p id="status">Page chargée...</p>
 
+  <script>
+    function setStatus(message) {
+      document.getElementById("status").innerText = message;
+      console.log(message);
+    }
+
+    setStatus("Début du script");
+
+    if (!navigator.geolocation) {
+      setStatus("La géolocalisation n'est pas disponible sur cet appareil.");
+    } else {
+      setStatus("Demande de position...");
+
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          setStatus(
+            "Latitude : " +
+            position.coords.latitude +
+            " | Longitude : " +
+            position.coords.longitude
+          );
+        },
+        function(error) {
+          setStatus("Erreur GPS : " + error.code + " - " + error.message);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          maximumAge: 30000
+        }
+      );
+    }
+  </script>
 </body>
 </html>
-
