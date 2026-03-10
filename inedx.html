@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPS</title>
+</head>
+
+<body>
+
+<p id="status">Récupération de la position...</p>
+
+<script>
+
+const params = new URLSearchParams(window.location.search)
+const qr = params.get("qr")
+
+navigator.geolocation.getCurrentPosition(function(position){
+
+const latitude = position.coords.latitude
+const longitude = position.coords.longitude
+
+document.getElementById("status").innerText =
+"Position envoyée"
+
+fetch("https://lmfq8v34u.budibase.app/api/webhooks/schema/app_dev_lmfq8v34u_f6e673d060084ab0a91870e76203b900/wh_0d7aa4b5c57c4aa595792064c9c4c30a",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+qr_code: qr,
+latitude: latitude,
+longitude: longitude,
+timestamp: new Date().toISOString()
+})
+})
+
+setTimeout(function(){
+window.close()
+},2000)
+
+})
+
+</script>
+
+</body>
+</html>
