@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Test GPS</title>
+  <title>GPS + Webhook</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -16,6 +16,11 @@
   <p id="status">Page chargée...</p>
 
   <script>
+    const params = new URLSearchParams(window.location.search);
+    const qr = params.get("qr");
+
+    const WEBHOOK_URL = "https://lmfq8v34u.budibase.app/api/webhooks/schema/app_dev_lmfq8v34u_f6e673d060084ab0a91870e76203b900/wh_0d7aa4b5c57c4aa595792064c9c4c30a";
+
     function setStatus(message) {
       document.getElementById("status").innerText = message;
       console.log(message);
@@ -24,18 +29,44 @@
     setStatus("Début du script");
 
     if (!navigator.geolocation) {
-      setStatus("La géolocalisation n'est pas disponible sur cet appareil.");
+      setStatus("La géolocalisation n'est pas disponible.");
     } else {
       setStatus("Demande de position...");
 
       navigator.geolocation.getCurrentPosition(
-        function(position) {
-          setStatus(
-            "Latitude : " +
-            position.coords.latitude +
-            " | Longitude : " +
-            position.coords.longitude
-          );
+        async function(position) {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          const timestamp = new Date().toISOString();
+
+          setStatus("Position trouvée, envoi au webhook...");
+
+          const payload = {
+            qr_code: qr,
+            latitude: latitude,
+            longitude: longitude,
+            timestamp: timestamp
+          };
+
+          try {
+            const response = await fetch(WEBHOOK_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(payload)
+            });
+
+            const text = await response.text();
+
+            if (!response.ok) {
+              throw new Error("HTTP " + response.status + " - " + text);
+            }
+
+            setStatus("Position envoyée avec succès");
+          } catch (error) {
+            setStatus("Erreur webhook : " + error.message);
+          }
         },
         function(error) {
           setStatus("Erreur GPS : " + error.code + " - " + error.message);
