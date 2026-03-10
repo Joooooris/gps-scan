@@ -1,47 +1,57 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GPS</title>
-</head>
-
-<body>
-
-<p id="status">Récupération de la position...</p>
-
 <script>
-
 const params = new URLSearchParams(window.location.search)
 const qr = params.get("qr")
 
-navigator.geolocation.getCurrentPosition(function(position){
+function setStatus(message) {
+  document.getElementById("status").innerText = message
+}
 
-const latitude = position.coords.latitude
-const longitude = position.coords.longitude
+if (!navigator.geolocation) {
+  setStatus("La géolocalisation n'est pas disponible sur cet appareil.")
+} else {
+  setStatus("Récupération de la position...")
 
-document.getElementById("status").innerText =
-"Position envoyée"
+  navigator.geolocation.getCurrentPosition(
+    function(position) {
+      const latitude = position.coords.latitude
+      const longitude = position.coords.longitude
 
-fetch("https://lmfq8v34u.budibase.app/api/webhooks/schema/app_dev_lmfq8v34u_f6e673d060084ab0a91870e76203b900/wh_0d7aa4b5c57c4aa595792064c9c4c30a",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-qr_code: qr,
-latitude: latitude,
-longitude: longitude,
-timestamp: new Date().toISOString()
-})
-})
+      setStatus("Position trouvée, envoi en cours...")
 
-setTimeout(function(){
-window.close()
-},2000)
-
-})
-
+      fetch("https://lmfq8v34u.budibase.app/api/webhooks/schema/app_dev_lmfq8v34u_f6e673d060084ab0a91870e76203b900/wh_0d7aa4b5c57c4aa595792064c9c4c30a", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          qr_code: qr,
+          latitude: latitude,
+          longitude: longitude,
+          timestamp: new Date().toISOString()
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Erreur HTTP " + response.status)
+        }
+        setStatus("Position envoyée avec succès")
+      })
+      .catch(error => {
+        setStatus("Erreur webhook : " + error.message)
+      })
+    },
+    function(error) {
+      setStatus("Erreur GPS : " + error.message)
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    }
+  )
+}
 </script>
 
 </body>
 </html>
+
