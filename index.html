@@ -84,13 +84,26 @@
 
       navigator.geolocation.getCurrentPosition(
         async function(position) {
-          const payload = {
-            qr_code: Number(qr),
-            id_personnel: Number(id_personnel),
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            timestamp: new Date().toISOString()
-          };
+        const now = new Date();
+        
+        const dateLocale = now.getFullYear() + "-" +
+          String(now.getMonth() + 1).padStart(2, "0") + "-" +
+          String(now.getDate()).padStart(2, "0");
+        
+        const heureLocale =
+          String(now.getHours()).padStart(2, "0") + ":" +
+          String(now.getMinutes()).padStart(2, "0") + ":" +
+          String(now.getSeconds()).padStart(2, "0");
+        
+        const payload = {
+          qr_code: Number(qr),
+          id_personnel: Number(id_personnel),
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          dates: dateLocale,
+          heures: heureLocale,
+          timestamp: now.toISOString()
+        };
 
           try {
             statusElement.innerText = "Envoi des données...";
