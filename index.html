@@ -1,101 +1,47 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>Enregistrement heures CBC</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+  const WORKER_URL = "https://calm-unit-e415.j-simon.workers.dev";
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 30px;
-      text-align: center;
-      background-color: #f5f5f5;
-    }
+  const params = new URLSearchParams(window.location.search);
 
-    .card {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      max-width: 400px;
-      margin: auto;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
+  const qr = params.get("qr");
+  const id_personnel = params.get("id_personnel");
 
-    h1 {
-      font-size: 22px;
-      margin-bottom: 20px;
-    }
+  const statusElement = document.getElementById("status");
+  const qrElement = document.getElementById("qrText");
+  const employeeElement = document.getElementById("employeeText");
 
-    #status {
-      font-size: 16px;
-      margin-top: 20px;
-    }
+  if (!qr || !id_personnel) {
+    qrElement.innerText = "QR code ou employé manquant.";
+    employeeElement.innerText = "";
+    statusElement.innerText = "Erreur : le lien doit contenir qr et id_personnel.";
+    statusElement.className = "error";
+  } else {
+    qrElement.innerText = "QR code : " + qr;
+    employeeElement.innerText = "Employé : " + id_personnel;
+    getLocationAndSend();
+  }
 
-    .ok {
-      color: green;
-      font-weight: bold;
-    }
-
-    .error {
-      color: red;
-      font-weight: bold;
-    }
-  </style>
-</head>
-
-<body>
-  <div class="card">
-    <h1>Enregistrement des heures</h1>
-    <p id="qrText">Lecture du QR code...</p>
-    <p id="employeeText">Lecture de l'employé...</p>
-    <p id="status">Récupération de la position GPS...</p>
-  </div>
-
-  <script>
-    const WORKER_URL = "https://calm-unit-e415.j-simon.workers.dev";
-
-    const params = new URLSearchParams(window.location.search);
-
-    const qr = params.get("qr");
-    const id_personnel = params.get("id_personnel");
-
-    const statusElement = document.getElementById("status");
-    const qrElement = document.getElementById("qrText");
-    const employeeElement = document.getElementById("employeeText");
-
-    if (!qr || !id_personnel) {
-      qrElement.innerText = "QR code ou employé manquant.";
-      employeeElement.innerText = "";
-      statusElement.innerText = "Erreur : le lien doit contenir qr et id_personnel.";
+  function getLocationAndSend() {
+    if (!navigator.geolocation) {
+      statusElement.innerText = "La géolocalisation n'est pas supportée par ce téléphone.";
       statusElement.className = "error";
-    } else {
-      qrElement.innerText = "QR code : " + qr;
-      employeeElement.innerText = "Employé : " + id_personnel;
-      getLocationAndSend();
+      return;
     }
 
-    function getLocationAndSend() {
-      if (!navigator.geolocation) {
-        statusElement.innerText = "La géolocalisation n'est pas supportée par ce téléphone.";
-        statusElement.className = "error";
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        async function(position) {
+    navigator.geolocation.getCurrentPosition(
+      async function(position) {
         const now = new Date();
-        
+
         const dateLocale =
           now.getFullYear() + "-" +
           String(now.getMonth() + 1).padStart(2, "0") + "-" +
           String(now.getDate()).padStart(2, "0");
-        
+
         const heureLocale =
           String(now.getHours()).padStart(2, "0") + ":" +
           String(now.getMinutes()).padStart(2, "0") + ":" +
           String(now.getSeconds()).padStart(2, "0");
-        
+
         const payload = {
           qr_code: Number(qr),
           id_personnel: Number(id_personnel),
@@ -106,43 +52,57 @@
           timestamp: now.toISOString()
         };
 
-          try {
-            statusElement.innerText = "Envoi des données...";
+        try {
+          statusElement.innerText = "Envoi des données...";
 
-            const response = await fetch(WORKER_URL, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify(payload)
-            });
+          const response = await fetch(WORKER_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
 
-            const result = await response.text();
+          const result = await response.text();
 
-            if (response.ok) {
-              statusElement.innerText = "Heure enregistrée avec succès.";
-              statusElement.className = "ok";
-            } else {
-              statusElement.innerText = "Erreur lors de l'envoi : " + result;
-              statusElement.className = "error";
-            }
+          if (response.ok) {
+            statusElement.innerText = "Heure enregistrée avec succès. Fermeture de la page...";
+            statusElement.className = "ok";
 
-          } catch (error) {
-            statusElement.innerText = "Erreur de connexion : " + error.message;
+            fermerPageAutomatiquement();
+
+          } else {
+            statusElement.innerText = "Erreur lors de l'envoi : " + result;
             statusElement.className = "error";
           }
-        },
-        function(error) {
-          statusElement.innerText = "Géolocalisation refusée ou impossible.";
+
+        } catch (error) {
+          statusElement.innerText = "Erreur de connexion : " + error.message;
           statusElement.className = "error";
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
         }
-      );
-    }
-  </script>
-</body>
-</html>
+      },
+      function(error) {
+        statusElement.innerText = "Géolocalisation refusée ou impossible.";
+        statusElement.className = "error";
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  }
+
+  function fermerPageAutomatiquement() {
+    setTimeout(function() {
+      window.close();
+
+      // Si le navigateur bloque la fermeture automatique
+      setTimeout(function() {
+        statusElement.innerText = "Heure enregistrée avec succès. Vous pouvez fermer cette page.";
+        statusElement.className = "ok";
+      }, 1000);
+
+    }, 1500);
+  }
+</script>
