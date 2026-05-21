@@ -33,12 +33,13 @@
       font-weight: bold;
       text-align: center;
     }
-    .ok {
-      color: #2e7d32;
+    #countdown {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      color: #777;
     }
-    .error {
-      color: #c62828;
-    }
+    .ok { color: #2e7d32; }
+    .error { color: #c62828; }
   </style>
 </head>
 <body>
@@ -46,16 +47,20 @@
   <p id="qrText"></p>
   <p id="employeeText"></p>
   <p id="status">Chargement en cours...</p>
+  <p id="countdown"></p>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const WORKER_URL = "https://calm-unit-e415.j-simon.workers.dev";
+      const BUDIBASE_URL = "https://cbcsalaires.budibase.app/app/default%20workspace/cbcheures#/saisie-des-heures-";
+
       const params = new URLSearchParams(window.location.search);
       const qr = params.get("qr");
       const id_personnel = params.get("id_personnel");
       const statusElement = document.getElementById("status");
       const qrElement = document.getElementById("qrText");
       const employeeElement = document.getElementById("employeeText");
+      const countdownElement = document.getElementById("countdown");
 
       if (!qr || !id_personnel) {
         qrElement.innerText = "QR code ou employé manquant.";
@@ -66,6 +71,20 @@
         qrElement.innerText = "QR code : " + qr;
         employeeElement.innerText = "Employé : " + id_personnel;
         getLocationAndSend();
+      }
+
+      function redirectToApp(secondes) {
+        let restant = secondes;
+        countdownElement.innerText = "Redirection dans " + restant + " seconde(s)...";
+        const interval = setInterval(function () {
+          restant--;
+          if (restant <= 0) {
+            clearInterval(interval);
+            window.location.href = BUDIBASE_URL;
+          } else {
+            countdownElement.innerText = "Redirection dans " + restant + " seconde(s)...";
+          }
+        }, 1000);
       }
 
       function getLocationAndSend() {
@@ -103,8 +122,9 @@
               });
               const result = await response.text();
               if (response.ok) {
-                statusElement.innerText = "✅ Heure enregistrée avec succès. Vous pouvez fermer cette page.";
+                statusElement.innerText = "✅ Heure enregistrée avec succès.";
                 statusElement.className = "ok";
+                redirectToApp(3);
               } else {
                 statusElement.innerText = "Erreur lors de l'envoi : " + result;
                 statusElement.className = "error";
