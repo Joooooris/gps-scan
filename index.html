@@ -17,12 +17,8 @@
       padding: 20px;
       box-sizing: border-box;
     }
-    h1 {
-      font-size: 1.4rem;
-      color: #333;
-      margin-bottom: 20px;
-    }
-    #qrText, #employeeText {
+    h1 { font-size: 1.4rem; color: #333; margin-bottom: 20px; }
+    #qrText, #employeeText, #actionText {
       font-size: 1rem;
       color: #555;
       margin: 4px 0;
@@ -33,17 +29,15 @@
       font-weight: bold;
       text-align: center;
     }
-    #countdown {
-      margin-top: 10px;
-      font-size: 0.95rem;
-      color: #777;
-    }
-    .ok { color: #2e7d32; }
+    #countdown { margin-top: 10px; font-size: 0.95rem; color: #777; }
+    .ok    { color: #2e7d32; }
     .error { color: #c62828; }
+    .info  { color: #1565c0; }
   </style>
 </head>
 <body>
   <h1>CBC — Enregistrement des heures</h1>
+  <p id="actionText"></p>
   <p id="qrText"></p>
   <p id="employeeText"></p>
   <p id="status">Chargement en cours...</p>
@@ -54,23 +48,102 @@
       const WORKER_URL = "https://calm-unit-e415.j-simon.workers.dev";
       const BUDIBASE_URL = "https://cbcsalaires.budibase.app/app/default%20workspace/cbcheures#/saisie-des-heures-";
 
-      const params = new URLSearchParams(window.location.search);
-      const qr = params.get("qr");
+      const params       = new URLSearchParams(window.location.search);
+      const qr           = params.get("qr");
       const id_personnel = params.get("id_personnel");
-      const statusElement = document.getElementById("status");
-      const qrElement = document.getElementById("qrText");
-      const employeeElement = document.getElementById("employeeText");
+      const action       = params.get("action") || "debut";
+      const tache_id     = params.get("tache_id") || null;
+
+      const statusElement    = document.getElementById("status");
+      const qrElement        = document.getElementById("qrText");
+      const employeeElement  = document.getElementById("employeeText");
+      const actionElement    = document.getElementById("actionText");
       const countdownElement = document.getElementById("countdown");
 
+      // Affichage selon l'action
+      const actionLabels = {
+        debut:   "▶️ Début de tâche",
+        pause:   "⏸️ Pause midi",
+        reprise: "▶️ Reprise après pause"
+      };
+      actionElement.innerText = actionLabels[action] || "Enregistrement";
+
       if (!qr || !id_personnel) {
-        qrElement.innerText = "QR code ou employé manquant.";
+        qrElement.innerText    = "QR code ou employé manquant.";
         employeeElement.innerText = "";
-        statusElement.innerText = "Erreur : le lien doit contenir qr et id_personnel.";
-        statusElement.className = "error";
+        statusElement.innerText   = "Erreur : le lien doit contenir qr et id_personnel.";
+        statusElement.className   = "error";
       } else {
-        qrElement.innerText = "QR code : " + qr;
+        qrElement.innerText       = "QR code : " + qr;
         employeeElement.innerText = "Employé : " + id_personnel;
         getLocationAndSend();
+      }
+
+      function getLocationAndSend() {
+        if (!navigator.geolocation) {
+          statusElement.innerText  = "La géolocalisation n'est pas supportée par ce téléphone.";
+          statusElement.className  = "error";
+          return;
+        }
+        statusElement.innerText  = "Récupération de la position GPS...";
+        statusElement.className  = "info";
+
+        navigator.geolocation.getCurrentPosition(
+          async function (position) {
+            const now = new Date();
+            const dateLocale =
+              now.getFullYear() + "-" +
+              String(now.getMonth() + 1).padStart(2, "0") + "-" +
+              String(now.getDate()).padStart(2, "0");
+            const heureLocale =
+              String(now.getHours()).padStart(2, "0") + ":" +
+              String(now.getMinutes()).padStart(2, "0") + ":" +
+              String(now.getSeconds()).padStart(2, "0");
+
+            const payload = {
+              action:       action,
+              qr_code:      Number(qr),
+              id_personnel: Number(id_personnel),
+              tache_id:     tache_id ? Number(tache_id) : null,
+              latitude:     position.coords.latitude,
+              longitude:    position.coords.longitude,
+              dates:        dateLocale,
+              heures:       heureLocale,
+              timestamp:    now.toISOString()
+            };
+
+            try {
+              statusElement.innerText = "Envoi des données...";
+              const response = await fetch(WORKER_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+              });
+              const result = await response.text();
+              if (response.ok) {
+                const messages = {
+                  debut:   "✅ Début de tâche enregistré.",
+                  pause:   "⏸️ Pause enregistrée.",
+                  reprise: "✅ Reprise enregistrée."
+                };
+                statusElement.innerText = messages[action] || "✅ Enregistré.";
+                statusElement.className = "ok";
+                redirectToApp(3);
+              } else {
+                statusElement.innerText = "Erreur lors de l'envoi : " + result;
+                statusElement.className = "error";
+              }
+            } catch (error) {
+              statusElement.innerText = "Erreur de connexion : " + error.message;
+              statusElement.className = "error";
+            }
+          },
+          function () {
+            statusElement.innerText = "Géolocalisation refusée ou impossible.";
+            statusElement.className = "error";
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
       }
 
       function redirectToApp(secondes) {
@@ -85,61 +158,6 @@
             countdownElement.innerText = "Redirection dans " + restant + " seconde(s)...";
           }
         }, 1000);
-      }
-
-      function getLocationAndSend() {
-        if (!navigator.geolocation) {
-          statusElement.innerText = "La géolocalisation n'est pas supportée par ce téléphone.";
-          statusElement.className = "error";
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(
-          async function (position) {
-            const now = new Date();
-            const dateLocale =
-              now.getFullYear() + "-" +
-              String(now.getMonth() + 1).padStart(2, "0") + "-" +
-              String(now.getDate()).padStart(2, "0");
-            const heureLocale =
-              String(now.getHours()).padStart(2, "0") + ":" +
-              String(now.getMinutes()).padStart(2, "0") + ":" +
-              String(now.getSeconds()).padStart(2, "0");
-            const payload = {
-              qr_code: Number(qr),
-              id_personnel: Number(id_personnel),
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              dates: dateLocale,
-              heures: heureLocale,
-              timestamp: now.toISOString()
-            };
-            try {
-              statusElement.innerText = "Envoi des données...";
-              const response = await fetch(WORKER_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-              });
-              const result = await response.text();
-              if (response.ok) {
-                statusElement.innerText = "✅ Heure enregistrée avec succès.";
-                statusElement.className = "ok";
-                redirectToApp(3);
-              } else {
-                statusElement.innerText = "Erreur lors de l'envoi : " + result;
-                statusElement.className = "error";
-              }
-            } catch (error) {
-              statusElement.innerText = "Erreur de connexion : " + error.message;
-              statusElement.className = "error";
-            }
-          },
-          function (error) {
-            statusElement.innerText = "Géolocalisation refusée ou impossible.";
-            statusElement.className = "error";
-          },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
       }
     });
   </script>
