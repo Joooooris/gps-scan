@@ -1,76 +1,127 @@
-document.addEventListener("DOMContentLoaded", function () {
-
-  const WORKER_URL = "https://calm-unit-e415.j-simon.workers.dev";
-  const params = new URLSearchParams(window.location.search);
-  const qr = params.get("qr");
-  const id_personnel = params.get("id_personnel");
-  const statusElement = document.getElementById("status");
-  const qrElement = document.getElementById("qrText");
-  const employeeElement = document.getElementById("employeeText");
-
-  if (!qr || !id_personnel) {
-    qrElement.innerText = "QR code ou employé manquant.";
-    employeeElement.innerText = "";
-    statusElement.innerText = "Erreur : le lien doit contenir qr et id_personnel.";
-    statusElement.className = "error";
-  } else {
-    qrElement.innerText = "QR code : " + qr;
-    employeeElement.innerText = "Employé : " + id_personnel;
-    getLocationAndSend();
-  }
-
-  function getLocationAndSend() {
-    if (!navigator.geolocation) {
-      statusElement.innerText = "La géolocalisation n'est pas supportée par ce téléphone.";
-      statusElement.className = "error";
-      return;
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CBC — Scan QR</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background-color: #f5f5f5;
+      padding: 20px;
+      box-sizing: border-box;
     }
-    navigator.geolocation.getCurrentPosition(
-      async function (position) {
-        const now = new Date();
-        const dateLocale =
-          now.getFullYear() + "-" +
-          String(now.getMonth() + 1).padStart(2, "0") + "-" +
-          String(now.getDate()).padStart(2, "0");
-        const heureLocale =
-          String(now.getHours()).padStart(2, "0") + ":" +
-          String(now.getMinutes()).padStart(2, "0") + ":" +
-          String(now.getSeconds()).padStart(2, "0");
-        const payload = {
-          qr_code: Number(qr),
-          id_personnel: Number(id_personnel),
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          dates: dateLocale,
-          heures: heureLocale,
-          timestamp: now.toISOString()
-        };
-        try {
-          statusElement.innerText = "Envoi des données...";
-          const response = await fetch(WORKER_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-          const result = await response.text();
-          if (response.ok) {
-            statusElement.innerText = "Heure enregistrée avec succès. Vous pouvez fermer cette page.";
-            statusElement.className = "ok";
-          } else {
-            statusElement.innerText = "Erreur lors de l'envoi : " + result;
-            statusElement.className = "error";
-          }
-        } catch (error) {
-          statusElement.innerText = "Erreur de connexion : " + error.message;
-          statusElement.className = "error";
-        }
-      },
-      function (error) {
-        statusElement.innerText = "Géolocalisation refusée ou impossible.";
-        statusElement.className = "error";
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-  }
+    h1 {
+      font-size: 1.4rem;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    #qrText, #employeeText {
+      font-size: 1rem;
+      color: #555;
+      margin: 4px 0;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-align: center;
+    }
+    .ok {
+      color: #2e7d32;
+    }
+    .error {
+      color: #c62828;
+    }
+  </style>
+</head>
+<body>
+  <h1>CBC — Enregistrement des heures</h1>
+  <p id="qrText"></p>
+  <p id="employeeText"></p>
+  <p id="status">Chargement en cours...</p>
 
-}); // fin DOMContentLoaded
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const WORKER_URL = "https://calm-unit-e415.j-simon.workers.dev";
+      const params = new URLSearchParams(window.location.search);
+      const qr = params.get("qr");
+      const id_personnel = params.get("id_personnel");
+      const statusElement = document.getElementById("status");
+      const qrElement = document.getElementById("qrText");
+      const employeeElement = document.getElementById("employeeText");
+
+      if (!qr || !id_personnel) {
+        qrElement.innerText = "QR code ou employé manquant.";
+        employeeElement.innerText = "";
+        statusElement.innerText = "Erreur : le lien doit contenir qr et id_personnel.";
+        statusElement.className = "error";
+      } else {
+        qrElement.innerText = "QR code : " + qr;
+        employeeElement.innerText = "Employé : " + id_personnel;
+        getLocationAndSend();
+      }
+
+      function getLocationAndSend() {
+        if (!navigator.geolocation) {
+          statusElement.innerText = "La géolocalisation n'est pas supportée par ce téléphone.";
+          statusElement.className = "error";
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          async function (position) {
+            const now = new Date();
+            const dateLocale =
+              now.getFullYear() + "-" +
+              String(now.getMonth() + 1).padStart(2, "0") + "-" +
+              String(now.getDate()).padStart(2, "0");
+            const heureLocale =
+              String(now.getHours()).padStart(2, "0") + ":" +
+              String(now.getMinutes()).padStart(2, "0") + ":" +
+              String(now.getSeconds()).padStart(2, "0");
+            const payload = {
+              qr_code: Number(qr),
+              id_personnel: Number(id_personnel),
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              dates: dateLocale,
+              heures: heureLocale,
+              timestamp: now.toISOString()
+            };
+            try {
+              statusElement.innerText = "Envoi des données...";
+              const response = await fetch(WORKER_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+              });
+              const result = await response.text();
+              if (response.ok) {
+                statusElement.innerText = "✅ Heure enregistrée avec succès. Vous pouvez fermer cette page.";
+                statusElement.className = "ok";
+              } else {
+                statusElement.innerText = "Erreur lors de l'envoi : " + result;
+                statusElement.className = "error";
+              }
+            } catch (error) {
+              statusElement.innerText = "Erreur de connexion : " + error.message;
+              statusElement.className = "error";
+            }
+          },
+          function (error) {
+            statusElement.innerText = "Géolocalisation refusée ou impossible.";
+            statusElement.className = "error";
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      }
+    });
+  </script>
+</body>
+</html>
