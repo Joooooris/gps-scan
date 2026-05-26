@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Règlement d'entreprise — CBC SA</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      background: #f8f7f4;
+      color: #1a1a1a;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .header {
+      background: #fff;
+      border-bottom: 3px solid #1a1a1a;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo-text {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      font-family: Arial Black, sans-serif;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      color: #666;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .doc-title {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #666;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    .cover {
+      background: #fff;
+      border: 2px solid #1a1a1a;
+      padding: 50px 60px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .cover h1 {
+      font-size: 28px;
+      font-weight: 900;
+      font-family: Arial Black, sans-serif;
+      background: #f5e9c8;
+      display: inline-block;
+      padding: 12px 30px;
+      margin-bottom: 40px;
+      letter-spacing: 1px;
+    }
+
+    .cover-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      text-align: left;
+      margin-bottom: 20px;
+    }
+
+    .cover-field {
+      border-bottom: 1px solid #1a1a1a;
+      padding-bottom: 4px;
+      font-size: 13px;
+    }
+
+    .cover-field label {
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .toc {
+      background: #fff;
+      border: 2px solid #1a1a1a;
+      padding: 40px 50px;
+      margin-bottom: 40px;
+    }
+
+    .toc h2 {
+      font-size: 16px;
+      font-weight: 900;
+      font-family: Arial Black, sans-serif;
+      text-decoration: underline;
+      margin-bottom: 24px;
+    }
+
+    .toc-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .toc-item.main {
+      font-weight: bold;
+      margin-top: 12px;
+    }
+
+    .toc-num {
+      min-width: 40px;
+      color: #555;
+    }
+
+    .section {
+      background: #fff;
+      border: 2px solid #1a1a1a;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    .section-header {
+      background: #f5e9c8;
+      border-bottom: 2px solid #1a1a1a;
+      padding: 14px 30px;
+      display: flex;
+      gap: 20px;
+      align-items: baseline;
+    }
+
+    .section-num {
+      font-size: 22px;
+      font-weight: 900;
+      font-family: Arial Black, sans-serif;
+      min-width: 40px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 900;
+      font-family: Arial Black, sans-serif;
+    }
+
+    .section-body {
+      padding: 30px;
+    }
+
+    .subsection {
+      margin-bottom: 28px;
+    }
+
+    .subsection:last-child { margin-bottom: 0; }
+
+    .subsection-header {
+      background: #e8e4dc;
+      border-left: 4px solid #1a1a1a;
+      padding: 8px 16px;
+      margin-bottom: 14px;
+      display: flex;
+      gap: 16px;
+    }
+
+    .subsection-num {
+      font-weight: bold;
+      min-width: 36px;
+    }
+
+    .subsection-title { font-weight: bold; }
+
+    p { margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+
+    ul, ol {
+      margin: 10px 0 14px 20px;
+    }
+
+    li { margin-bottom: 6px; }
+
+    .highlight {
+      background: #f5e9c8;
+      padding: 2px 4px;
+    }
+
+    strong { font-weight: bold; }
+    em { font-style: italic; }
+    u { text-decoration: underline; }
+
+    .table-bonus {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 13px;
+    }
+
+    .table-bonus td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .table-bonus td:last-child {
+      text-align: right;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .table-bonus tr:hover td { background: #f9f7f2; }
+
+    .table-vacances {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+    }
+
+    .table-vacances td {
+      padding: 6px 12px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .signature-area {
+      border: 1px solid #aaa;
+      padding: 30px;
+      margin-top: 20px;
+      text-align: center;
+      color: #888;
+      font-style: italic;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 30px;
+      font-size: 11px;
+      color: #888;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 600px) {
+      .header { padding: 14px 16px; }
+      .cover { padding: 30px 20px; }
+      .cover-fields { grid-template-columns: 1fr; }
+      .toc { padding: 24px 20px; }
+      .section-body { padding: 20px; }
+      .section-header { padding: 12px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-area">
+    <div>
+      <div class="logo-text">cbc</div>
+      <div class="logo-sub">ca-balaie.com</div>
+    </div>
+  </div>
+  <div class="doc-title">Règlement d'entreprise · V3</div>
+</div>
+
+<div class="container">
+
+  <!-- COUVERTURE -->
+  <div class="cover">
+    <h1>RÈGLEMENT D'ENTREPRISE</h1>
+    <div class="cover-fields">
+      <div class="cover-field"><label>Document remis à :</label></div>
+      <div></div>
+      <div class="cover-field"><label>Nom :</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+      <div class="cover-field"><label>Prénom :</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+    </div>
+    <div style="text-align:left; margin-top:20px;">
+      <div class="cover-field" style="width:60%;"><label>Signature :</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+    </div>
+  </div>
+
+  <!-- TABLE DES MATIÈRES -->
+  <div class="toc">
+    <h2>Table des matières</h2>
+    <div class="toc-item main"><span class="toc-num">1.</span><span>But et champ d'application</span></div>
+    <div class="toc-item main"><span class="toc-num">2.</span><span>Début et fin des rapports de travail</span></div>
+    <div class="toc-item"><span class="toc-num">2.1</span><span>Conclusion du contrat de travail</span></div>
+    <div class="toc-item"><span class="toc-num">2.2</span><span>Calcul des années de service</span></div>
+    <div class="toc-item"><span class="toc-num">2.3</span><span>Fin des rapports de travail</span></div>
+    <div class="toc-item main"><span class="toc-num">3.</span><span>Droits et obligations du collaborateur</span></div>
+    <div class="toc-item"><span class="toc-num">3.1–3.16</span><span>Droit d'association, organisation, sécurité, données, EPI, géolocalisation...</span></div>
+    <div class="toc-item main"><span class="toc-num">4.</span><span>Durée de travail</span></div>
+    <div class="toc-item"><span class="toc-num">4.1–4.7</span><span>Heures normales, supplémentaires, de nuit, déneigement...</span></div>
+    <div class="toc-item main"><span class="toc-num">5.</span><span>Rémunération et défraiements supplémentaires</span></div>
+    <div class="toc-item"><span class="toc-num">5.1–5.5</span><span>Salaire, repas, déplacement, bonus qualité, piquets</span></div>
+    <div class="toc-item main"><span class="toc-num">6.</span><span>Absences</span></div>
+    <div class="toc-item"><span class="toc-num">6.1–6.4</span><span>Vacances, congés payés, absences courtes, congés non payés</span></div>
+    <div class="toc-item main"><span class="toc-num">7.</span><span>Prestations sociales</span></div>
+    <div class="toc-item main"><span class="toc-num">8.</span><span>Entrée en vigueur</span></div>
+  </div>
+
+  <!-- SECTION 1 -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">1.</span>
+      <span class="section-title">But et champ d'application</span>
+    </div>
+    <div class="section-body">
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">1.1</span><span class="subsection-title">But</span></div>
+        <p>Le présent règlement fixe les conditions générales d'engagement en complément aux contrats de travail individuels du site de Boussens et des emplacements loués par CBC SA dans le cadre de ses activités.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">1.2</span><span class="subsection-title">Bases</span></div>
+        <p>Le présent règlement du personnel est basé sur les dispositions légales du Code suisse des obligations (CO), la loi sur le travail (Ltr) et ses ordonnances ainsi que sur le règlement d'entreprise en vigueur.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">1.3</span><span class="subsection-title">Rapport avec le contrat de travail individuel et les conventions collectives (CC)</span></div>
+        <p>Les conditions prévues dans le contrat individuel de travail l'emportent sur le règlement du personnel de même que les dispositions prévues dans les CC qui ont force obligatoire.</p>
+        <p>La société est affiliée à l'ASTAG.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">1.4</span><span class="subsection-title">Champ d'application individuel</span></div>
+        <p>Le présent règlement fait partie intégrante des contrats de travail de tous les collaborateurs de l'entreprise y.c. pour les collaborateurs ayant un contrat de travail de durée déterminée.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">2.</span>
+      <span class="section-title">Début et fin des rapports de travail</span>
+    </div>
+    <div class="section-body">
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">2.1</span><span class="subsection-title">Conclusion du contrat de travail</span></div>
+        <p>Les contrats de travail doivent exclusivement être établis par la direction du personnel à Boussens. La fiche d'entrée du collaborateur doit être remise au service du personnel entièrement complétée par le collaborateur avant établissement du contrat de travail.</p>
+        <p>Les trois premiers mois des rapports de travail sont considérés comme temps d'essai.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">2.2</span><span class="subsection-title">Calcul des années de service</span></div>
+        <p>Lorsque les droits d'un collaborateur à l'égard de l'entreprise dépendent du nombre d'années de service, sera considérée comme année de service la période d'une année comptée à partir du jour de l'entrée en service mentionnée dans le contrat de travail.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">2.3</span><span class="subsection-title">Fin des rapports de travail</span></div>
+        <p>Les rapports de travail peuvent être résiliés par chacune des parties moyennant le respect des délais suivants :</p>
+        <table class="table-vacances">
+          <tr><td>a) pendant le temps d'essai</td><td>7 jours</td></tr>
+          <tr><td>b) au cours de la 1ère année</td><td>1 mois pour la fin d'un mois</td></tr>
+          <tr><td>c) de la 2ème à la 9ème année</td><td>2 mois pour la fin d'un mois</td></tr>
+          <tr><td>d) dès la 10ème année</td><td>3 mois pour la fin d'un mois</td></tr>
+        </table>
+        <p>La résiliation immédiate des rapports de travail pour de justes motifs (art. 337CO) est réservée.</p>
+        <p>À la fin des rapports de travail, tout le matériel professionnel (clés, badge, ordinateur portable, voiture de fonction, EPI, etc.) ainsi que les données et documents doivent être rendus spontanément.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">3.</span>
+      <span class="section-title">Droits et obligations du collaborateur</span>
+    </div>
+    <div class="section-body">
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.1</span><span class="subsection-title">Droit d'association</span></div>
+        <p>Le droit d'association est garanti. L'appartenance ou la non-appartenance à une association sportive, culturelle, religieuse, politique ou autre ne doit entraîner aucun préjudice pour les collaborateurs.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.2</span><span class="subsection-title">Organisation des travailleurs</span></div>
+        <p>L'appartenance ou la non-appartenance à une organisation de travailleurs ne doit entraîner aucun préjudice pour les collaborateurs.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.3</span><span class="subsection-title">Charges publiques</span></div>
+        <p>Pour exercer des charges publiques à titre bénévole, les demandes doivent être adressées à la Direction. Cette activité ne devra pas entraîner d'absences pendant les heures de service.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.4</span><span class="subsection-title">Devoir de diligence et de fidélité</span></div>
+        <p>Les dispositions des art. 321 et suivants s'appliquent. Le collaborateur exécute avec soin le travail qui lui est confié et sauvegarde fidèlement les intérêts légitimes de l'entreprise. Il est tenu de traiter et d'utiliser selon les règles en la matière les machines, instruments de travail, installations et véhicules de la société.</p>
+        <p>Le collaborateur est tenu de traiter confidentiellement les affaires commerciales de l'entreprise pendant les rapports de travail et même après la fin du contrat de travail.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.5</span><span class="subsection-title">Intégrité / interdiction de la discrimination et du harcèlement moral</span></div>
+        <p>L'entreprise est tenue de respecter et protéger la personnalité du collaborateur. Aucune discrimination quant à la race, nationalité, sexe, orientation sexuelle, religion ou âge ne sera tolérée. L'entreprise ne tolère aucun comportement abusif (harcèlement moral).</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.6</span><span class="subsection-title">Harcèlement</span></div>
+        <p>Aucune forme de harcèlement ne sera tolérée. Les harceleurs feront l'objet d'une enquête interne et le cas échéant de sanctions. Les cas graves pourront être dénoncés au ministère public.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.7</span><span class="subsection-title">Acceptation de dons et d'autres avantages</span></div>
+        <p>Les collaborateurs n'ont pas le droit d'accepter des dons, cadeaux ou largesses de la part de clients ou fournisseurs. Font exception les cadeaux de moindre valeur jusqu'à CHF 100.–</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.8</span><span class="subsection-title">Activité accessoire</span></div>
+        <p>Une activité accessoire régulière nécessite l'accord écrit de la direction. L'utilisation de moyens d'exploitation appartenant à l'entreprise est par défaut interdite.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.9</span><span class="subsection-title">Alcool et drogues</span></div>
+        <p>La consommation d'alcool et de drogues sont strictement interdits durant les heures de travail et sur les lieux de travail pour tout le personnel opérationnel. Les infractions peuvent entraîner la résiliation immédiate des rapports de travail.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.10</span><span class="subsection-title">Protection des fumeurs et non-fumeurs</span></div>
+        <p>Les bureaux et zones sanitaires sont des zones non-fumeurs. Le dépôt est une zone strictement non-fumeur. En cas de conduite de véhicules, le respect des non-fumeurs et du matériel est exigé.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.11</span><span class="subsection-title">Données personnelles</span></div>
+        <p>Toute modification dans les données personnelles (état civil, déménagement, etc.) doit être <strong>immédiatement</strong> communiquée au secrétariat.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.12</span><span class="subsection-title">Vêtements de travail et EPI</span></div>
+        <p>Les collaborateurs doivent porter des EPI type S3 ainsi que les vêtements portant le logo de l'entreprise. Le collaborateur a droit par année à :</p>
+        <ul>
+          <li>Une paire de chaussures de sécurité d'hiver</li>
+          <li>Une paire de chaussures de sécurité légères</li>
+        </ul>
+        <p>pour un montant maximal de CHF 120.– chaque paire, le surplus lui sera facturé.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.13</span><span class="subsection-title">Sécurité</span></div>
+        <p>La direction exige de chacun qu'il prenne toutes les dispositions nécessaires à sa sécurité et celle des autres. Aucune dérogation ne sera tolérée. Une violation peut entraîner des sanctions pouvant aller jusqu'au licenciement.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.14</span><span class="subsection-title">Géolocalisation et vidéosurveillance</span></div>
+        <p>L'entreprise a mis en place une solution de traçabilité et de géolocalisation des véhicules. Les locaux sont équipés de caméras de surveillance. Ces systèmes ne sont pas destinés à surveiller le comportement des collaborateurs, toutefois des contrôles pourront être effectués en cas d'abus.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.15</span><span class="subsection-title">Permis de conduire</span></div>
+        <p>Un contrôle des permis de conduire sera effectué régulièrement. Tout retrait doit être annoncé à l'employeur au plus vite et avant la date d'entrée en vigueur de l'interdiction. En cas de retrait d'un chauffeur professionnel, le poste n'est plus garanti.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">3.16</span><span class="subsection-title">Sécurité des données / IT</span></div>
+        <p>Le collaborateur engage sa responsabilité personnelle dans le traitement des données électroniques. En cas de doute sur un mail, ne l'ouvrez pas. L'utilisation d'internet à des fins privées est tolérée en dehors des heures de travail uniquement.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">4.</span>
+      <span class="section-title">Durée de travail</span>
+    </div>
+    <div class="section-body">
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">4.1</span><span class="subsection-title">Durée normale de travail</span></div>
+        <p>La durée normale de travail est de <strong>46 heures par semaine</strong>. La semaine de travail est de 5 jours. Un service de piquet 24H/24H est mis en place.</p>
+        <p>Les pauses sont de ¼ h le matin et ¼ h l'après-midi et sont prises en compte dans le calcul de la durée hebdomadaire.</p>
+        <p><strong>La pause de midi de 60 minutes est obligatoire</strong>, sauf contradiction du chef de chantier ou des responsables de la planification (preuve à l'appui).</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">4.2</span><span class="subsection-title">Rapport journalier de travail</span></div>
+        <p>Chaque collaborateur doit fournir un rapport journalier de travail détaillé. Les rapports doivent être remis <strong>le lendemain au plus tard</strong> au secrétariat (vendredi → lundi).</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">4.3</span><span class="subsection-title">Heures supplémentaires</span></div>
+        <p><strong>Les heures supplémentaires sont en priorité compensées par du temps récupéré.</strong></p>
+        <p>Les heures de nuit (22h–5h) sont majorées de 25% (dimanche et jours fériés à 50%). Ces majorations sont payées en même temps que le salaire. Elles pourront être payées, selon accord, <strong>au maximum 4 fois par an</strong>.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">4.4</span><span class="subsection-title">Heures de nuit – chantiers d'autoroute</span></div>
+        <p>Le collaborateur qui travaille de nuit (dès 22h) et n'obtient pas son quota d'heures journalières se verra compenser ses heures (9h20 les semaines de 46h).</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">4.5</span><span class="subsection-title">Heures de nuit – déneigement</span></div>
+        <p>Le collaborateur qui sort pour contrôler ou déneiger sera payé à un taux horaire majoré de <strong>CHF 20.–/heure</strong>. Cela vaut pour les heures de 17h–7h uniquement.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">4.6</span><span class="subsection-title">Solde des heures supplémentaires</span></div>
+        <p>Les supérieurs s'assurent que les collaborateurs disposent d'un solde de compensation équilibré en fin d'année de <strong>+/– 45 heures</strong>.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">4.7</span><span class="subsection-title">Décompte en cas de dissolution des rapports de travail</span></div>
+        <p>En cas de résiliation, les heures supplémentaires ou déficits sont compensés durant le préavis. En présence d'heures de compensation et de vacances, les heures de compensation doivent être prises en priorité.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">5.</span>
+      <span class="section-title">Rémunération et défraiements supplémentaires</span>
+    </div>
+    <div class="section-body">
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">5.1</span><span class="subsection-title">Salaire</span></div>
+        <p>Le salaire est versé aux alentours du 25 de chaque mois. Le 13ème salaire est versé en décembre.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">5.2</span><span class="subsection-title">Repas</span></div>
+        <p>Le personnel de l'exploitation touche, uniquement lors de jours travaillés :</p>
+        <ul>
+          <li>CHF 20.– frais de repas de midi (travail effectif minimum 8h–15h)</li>
+          <li>CHF 20.– frais de repas du soir (s'il finit plus tard que 20h)</li>
+          <li>CHF 8.– frais de petit-déjeuner s'il commence avant 5h du matin ou a travaillé la nuit de minuit à 5h non-stop</li>
+        </ul>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">5.3</span><span class="subsection-title">Déplacement</span></div>
+        <p>Les frais de déplacement en cas d'utilisation de voiture privée pour raisons professionnelles sont rémunérés <strong>0.70 ct le kilomètre</strong> (les trajets maison-travail ne sont pas concernés).</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">5.4</span><span class="subsection-title">Bonus Qualité</span></div>
+        <p>Le bonus de qualité s'élève à <strong>CHF 2'000.–/an</strong>, payé en juillet. Aucun bonus n'est accordé durant les trois premiers mois du temps d'essai.</p>
+        <p><u><strong>Les collaborateurs pouvant prétendre à ce traitement sont ceux qui conduisent un véhicule appartenant à l'entreprise.</strong></u></p>
+        <p><strong>5.4.3 Déductions du bonus de qualité :</strong></p>
+        <table class="table-bonus">
+          <tr><td>Dommage sur nos propres véhicules ou marchandise transportée</td><td>– 500.00</td></tr>
+          <tr><td>Dommage non-annoncé dans les 24h (par écrit constat/check list)</td><td>– 50.00</td></tr>
+          <tr><td>Propreté insuffisante véhicule (malgré rappel)</td><td>– 50.00</td></tr>
+          <tr><td>Vêtements professionnels non portés</td><td>– 20.00</td></tr>
+          <tr><td>Retard de plus de 24h dans le dépôt des rapports journaliers</td><td>– 20.00</td></tr>
+          <tr><td>Manquement dans le scannage des QR code</td><td>– 20.00</td></tr>
+          <tr><td>Non-conformité dans le remplissage des bons et sur EASY NOMAD</td><td>– 20.00</td></tr>
+          <tr><td>Non-respect du matériel mis à disposition</td><td>– 20.00</td></tr>
+          <tr><td>Fermeture volontaire du receveur GPS / Logifleet</td><td>– 20.00</td></tr>
+          <tr><td>Plaintes de clients pour travail mal fait ou comportement inapproprié</td><td>– 20.00</td></tr>
+          <tr><td>Dommages de responsabilité civile, Accident / Approche LCR (max CHF 500.–/trimestre)</td><td>– 500.00</td></tr>
+        </table>
+        <p><em>Cette liste n'est pas exhaustive et peut être amenée à évoluer dans le temps.</em></p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">5.5</span><span class="subsection-title">Piquets</span></div>
+        <p><u>Piquets de WC / balayage (pompiers inclus) :</u></p>
+        <ul>
+          <li>CHF 200.–/semaine pour le personnel de piquet</li>
+          <li>CHF 100.–/semaine pour le suppléant</li>
+          <li>Payés en janvier pour l'année précédente</li>
+        </ul>
+        <p><u>Piquets de neige :</u></p>
+        <ul>
+          <li>CHF 300.–/mois payés en mai (hors absences, vacances, maladie, etc.)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6 -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">6.</span>
+      <span class="section-title">Absences</span>
+    </div>
+    <div class="section-body">
+      <p>Toute absence doit être annoncée par téléphone à son supérieur direct. Les sms, whatsapp, email ne sont pas acceptés.</p>
+      <div class="subsection" style="margin-top:20px;">
+        <div class="subsection-header"><span class="subsection-num">6.1</span><span class="subsection-title">Vacances</span></div>
+        <table class="table-vacances">
+          <tr><td>Pour les apprentis</td><td>5 semaines</td></tr>
+          <tr><td>Pour les collaborateurs jusqu'à 45 ans</td><td>4 semaines</td></tr>
+          <tr><td>Pour les collaborateurs de plus de 45 ans révolus</td><td>5 semaines</td></tr>
+        </table>
+        <p>Les vacances doivent être prises avant la fin de l'année. Les jours reportés doivent être pris <strong>avant le 30 avril de l'année suivante</strong>.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">6.2</span><span class="subsection-title">Congés payés</span></div>
+        <table class="table-vacances">
+          <tr><td>a) Mariage / enregistrement du partenariat</td><td>2 jours</td></tr>
+          <tr><td>b) Accouchement de l'épouse / partenaire</td><td>1 jour</td></tr>
+          <tr><td>c) Adoption d'un enfant</td><td>1 jour</td></tr>
+          <tr><td>d) Congé paternité (dans les 6 mois suivant la naissance)</td><td>10 jours</td></tr>
+          <tr><td>e) Décès du conjoint, d'un enfant, père, mère</td><td>3 jours</td></tr>
+          <tr><td>f) Décès de frères, sœurs, beau-père, belle-mère, parents à charge</td><td>3 jours</td></tr>
+          <tr><td>g) Déménagement de son propre appartement</td><td>1 jour</td></tr>
+          <tr><td>h) Libération des obligations militaires</td><td>1 jour</td></tr>
+          <tr><td>i) Soin d'un enfant malade (avec certificat médical)</td><td>3 jours</td></tr>
+        </table>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">6.3</span><span class="subsection-title">Absences de courte durée</span></div>
+        <p>Les absences pour raisons privées ou visites médicales doivent s'effectuer, dans la mesure du possible, en dehors des heures de travail. Pour les absences dues à maladie/accident, les heures prévues seront créditées au collaborateur.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">6.4</span><span class="subsection-title">Congés non payés</span></div>
+        <p>Le collaborateur peut bénéficier de congés non payés en accord avec son responsable. Les congés non payés de plus de 4 semaines doivent être avalisés par la direction.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7 -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">7.</span>
+      <span class="section-title">Prestations sociales</span>
+    </div>
+    <div class="section-body">
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">7.1</span><span class="subsection-title">Primes d'ancienneté</span></div>
+        <table class="table-vacances">
+          <tr><td>10 ans d'ancienneté</td><td>CHF 1'000.–</td><td>ou 2 jours de vacances</td></tr>
+          <tr><td>15 ans d'ancienneté</td><td>CHF 1'500.–</td><td>ou 3 jours de vacances</td></tr>
+          <tr><td>20 ans d'ancienneté</td><td>CHF 2'000.–</td><td>ou 4 jours de vacances</td></tr>
+          <tr><td>25 ans d'ancienneté</td><td>CHF 2'500.–</td><td>ou 6 jours de vacances</td></tr>
+        </table>
+        <p>La prime d'ancienneté après 25 ans de service est versée tous les 5 ans.</p>
+      </div>
+      <div class="subsection">
+        <div class="subsection-header"><span class="subsection-num">7.2</span><span class="subsection-title">Formation</span></div>
+        <p>La société s'engage à former ses collaborateurs au minimum une journée par année et les incite à suivre les formations OACP régulièrement.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 8 -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">8.</span>
+      <span class="section-title">Entrée en vigueur</span>
+    </div>
+    <div class="section-body">
+      <p>Le présent règlement du personnel entre en vigueur le <strong>1er janvier 2026</strong> et pourra être mis à jour régulièrement.</p>
+      <div class="signature-area" style="margin-top:30px; text-align:left;">
+        <p>Boussens, le 1<sup>er</sup> janvier 2026</p>
+        <br><br>
+        <p>_______________________________</p>
+        <p style="font-size:12px; margin-top:6px;">Direction CBC SA</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">CBC SA · Règlement d'entreprise V3 · En vigueur dès le 1er janvier 2026</div>
+
+</body>
+</html>
