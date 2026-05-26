@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planning Piquet — CBC</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family: Arial, sans-serif; }
+    body { background:#f5f5f5; padding:12px; }
+
+    .legende { display:flex; gap:16px; padding:8px 0 10px; font-size:12px; }
+    .leg-item { display:flex; align-items:center; gap:6px; }
+    .leg-dot { width:14px; height:14px; border-radius:2px; }
+
+    .cal-nav {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 16px; background:#1a5276; color:#fff;
+      border-radius:8px 8px 0 0;
+    }
+    .cal-nav button {
+      background:rgba(255,255,255,0.2); border:none; color:#fff;
+      padding:6px 14px; border-radius:4px; cursor:pointer; font-size:14px;
+    }
+    .cal-nav button:hover { background:rgba(255,255,255,0.35); }
+    .cal-title { font-size:16px; font-weight:bold; }
+
+    .cal-grid {
+      display:grid; grid-template-columns:repeat(7,1fr);
+      border:1px solid #ddd; border-top:none;
+      border-radius:0 0 8px 8px; overflow:hidden;
+      background:#fff;
+    }
+    .cal-header {
+      background:#2e86c1; color:#fff; text-align:center;
+      padding:8px 4px; font-size:12px; font-weight:bold;
+    }
+    .cal-day {
+      min-height:90px; border-right:1px solid #e8e8e8;
+      border-bottom:1px solid #e8e8e8; padding:4px; background:#fff;
+    }
+    .cal-day:nth-child(7n) { border-right:none; }
+    .cal-day.empty { background:#f9f9f9; }
+    .cal-day.today { background:#eaf4ff; }
+    .day-num { font-size:12px; font-weight:bold; color:#333; margin-bottom:3px; }
+    .cal-day.today .day-num {
+      background:#2e86c1; color:#fff; width:22px; height:22px;
+      border-radius:50%; display:flex; align-items:center; justify-content:center;
+    }
+    .piquet {
+      border-radius:4px; padding:3px 5px; margin-top:3px;
+      font-size:10px; line-height:1.5;
+    }
+    .piquet.wc { background:#d6eaf8; border-left:3px solid #2e86c1; }
+    .piquet.neige { background:#d5f5e3; border-left:3px solid #27ae60; }
+
+    #loading {
+      text-align:center; padding:40px; color:#666; font-size:14px;
+    }
+    #error {
+      display:none; background:#fdecea; border:1px solid #e74c3c;
+      color:#c0392b; padding:12px; border-radius:6px; margin-bottom:12px;
+      font-size:13px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="error"></div>
+<div id="loading">⏳ Chargement du planning...</div>
+
+<div id="cal-container" style="display:none;">
+  <div class="legende">
+    <div class="leg-item">
+      <div class="leg-dot" style="background:#d6eaf8;border-left:3px solid #2e86c1;"></div>
+      WC / Balayage
+    </div>
+    <div class="leg-item">
+      <div class="leg-dot" style="background:#d5f5e3;border-left:3px solid #27ae60;"></div>
+      Neige
+    </div>
+  </div>
+
+  <div class="cal-nav">
+    <button onclick="changeMonth(-1)">◀</button>
+    <span class="cal-title" id="cal-title"></span>
+    <button onclick="changeMonth(1)">▶</button>
+  </div>
+
+  <div class="cal-grid" id="cal-grid">
+    <div class="cal-header">Lun</div>
+    <div class="cal-header">Mar</div>
+    <div class="cal-header">Mer</div>
+    <div class="cal-header">Jeu</div>
+    <div class="cal-header">Ven</div>
+    <div class="cal-header">Sam</div>
+    <div class="cal-header">Dim</div>
+  </div>
+</div>
+
+<script>
+  const API_KEY  = '9dbb373c9a2944470f3b7d008c0b83fb-9ff41d1e2e8c402873bbd7a044a02fffb83af8d887e4ddf2524feb11fab0a8aa2923394a9b2a31ecc63cf40a';
+  const QUERY_ID = 'query_datasource_plus_4d3b172e4edc4e67a1d76dd6a7803db4_b5bf1b97fb8845938882e0f2d5a54a2b';
+  const BASE_URL = 'https://cbcsalaires.budibase.app';
+
+  const MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+  let planningData = [];
+  let now = new Date();
+  let year = now.getFullYear();
+  let month = now.getMonth();
+
+  async function loadData() {
+    try {
+      const res = await fetch(`${BASE_URL}/api/public/v1/queries/${QUERY_ID}/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-budibase-api-key': API_KEY
+        },
+        body: JSON.stringify({})
+      });
+
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      const json = await res.json();
+      planningData = json.data || json.rows || json || [];
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('cal-container').style.display = 'block';
+      renderCalendar();
+
+    } catch(e) {
+      document.getElementById('loading').style.display = 'none';
+      const errDiv = document.getElementById('error');
+      errDiv.style.display = 'block';
+      errDiv.textContent = '❌ Erreur de chargement : ' + e.message;
+    }
+  }
+
+  function changeMonth(dir) {
+    month += dir;
+    if (month > 11) { month = 0; year++; }
+    if (month < 0)  { month = 11; year--; }
+    renderCalendar();
+  }
+
+  function getPiquets(dateStr) {
+    return planningData.filter(p => {
+      const d     = new Date(dateStr + 'T00:00:00');
+      const debut = new Date((p.debut || '').substring(0, 10) + 'T00:00:00');
+      const fin   = new Date((p.fin   || '').substring(0, 10) + 'T23:59:59');
+      return d >= debut && d <= fin;
+    });
+  }
+
+  function renderCalendar() {
+    document.getElementById('cal-title').textContent = MOIS[month] + ' ' + year;
+
+    const grid = document.getElementById('cal-grid');
+    while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+
+    const firstDow = new Date(year, month, 1).getDay();
+    const startDow = firstDow === 0 ? 6 : firstDow - 1;
+    const lastDay  = new Date(year, month + 1, 0).getDate();
+    const today    = new Date(); today.setHours(0,0,0,0);
+
+    for (let i = 0; i < startDow; i++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day empty';
+      grid.appendChild(el);
+    }
+
+    for (let d = 1; d <= lastDay; d++) {
+      const dateObj = new Date(year, month, d);
+      const dateStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+      const isToday = dateObj.getTime() === today.getTime();
+
+      const el = document.createElement('div');
+      el.className = 'cal-day' + (isToday ? ' today' : '');
+
+      const numDiv = document.createElement('div');
+      numDiv.className = 'day-num';
+      numDiv.textContent = d;
+      el.appendChild(numDiv);
+
+      getPiquets(dateStr).forEach(p => {
+        const cls = (p.type_piquet || '').toLowerCase().includes('neige') ? 'neige' : 'wc';
+        const div = document.createElement('div');
+        div.className = 'piquet ' + cls;
+        const t = ((p.prenom_titulaire || '') + ' ' + (p.nom_titulaire || '')).trim();
+        const s = ((p.prenom_supplant || '') + ' ' + (p.nom_supplant   || '')).trim();
+        div.innerHTML = '<b>T:</b> ' + (t || '—') + (s ? '<br><b>S:</b> ' + s : '');
+        el.appendChild(div);
+      });
+
+      grid.appendChild(el);
+    }
+  }
+
+  loadData();
+</script>
+</body>
+</html>
