@@ -286,7 +286,7 @@
     <div class="form-row">
       <label>Type de piquet</label>
       <select id="f-type">
-        <option value="wc">🧹 WC / Balayage</option>
+        <option value="WC_balayage">🧹 WC / Balayage</option>
         <option value="neige">❄️ Neige</option>
       </select>
     </div>
@@ -438,7 +438,7 @@ function openCreate(dateStr) {
   editingId = null;
   document.getElementById('modal-title').textContent = '➕ Nouveau piquet';
   document.getElementById('btn-delete').style.display = 'none';
-  document.getElementById('f-type').value = 'wc';
+  document.getElementById('f-type').value = 'WC_balayage';
   document.getElementById('f-debut').value = dateStr;
   document.getElementById('f-fin').value   = dateStr;
   document.getElementById('f-titulaire').value = '';
@@ -454,7 +454,7 @@ function openEdit(event, id) {
   editingId = id;
   document.getElementById('modal-title').textContent = '✏️ Modifier le piquet';
   document.getElementById('btn-delete').style.display = 'block';
-  document.getElementById('f-type').value = (p.type_piquet||'wc').toLowerCase();
+  document.getElementById('f-type').value = (p.type_piquet||'WC_balayage');
   document.getElementById('f-debut').value = p.debut.substring(0,10);
   document.getElementById('f-fin').value   = p.fin.substring(0,10);
 
