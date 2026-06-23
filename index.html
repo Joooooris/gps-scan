@@ -18,7 +18,7 @@
       box-sizing: border-box;
     }
     h1 { font-size: 1.4rem; color: #333; margin-bottom: 20px; }
-    #qrText, #employeeText, #actionText {
+    #qrText, #employeeText, #actionText, #vehiculeText {
       font-size: 1rem;
       color: #555;
       margin: 4px 0;
@@ -40,6 +40,7 @@
   <p id="actionText"></p>
   <p id="qrText"></p>
   <p id="employeeText"></p>
+  <p id="vehiculeText"></p>
   <p id="status">Chargement en cours...</p>
   <p id="countdown"></p>
 
@@ -53,11 +54,13 @@
       const id_personnel = params.get("id_personnel");
       const action       = params.get("action") || "debut";
       const tache_id     = params.get("tache_id") || null;
+      const vehicule_id  = params.get("vehicule_id") || null;
 
       const statusElement    = document.getElementById("status");
       const qrElement        = document.getElementById("qrText");
       const employeeElement  = document.getElementById("employeeText");
       const actionElement    = document.getElementById("actionText");
+      const vehiculeElement  = document.getElementById("vehiculeText");
       const countdownElement = document.getElementById("countdown");
 
       // Affichage selon l'action
@@ -76,6 +79,9 @@
       } else {
         qrElement.innerText       = "QR code : " + qr;
         employeeElement.innerText = "Employé : " + id_personnel;
+        if (vehicule_id) {
+          vehiculeElement.innerText = "🚐 Véhicule : " + vehicule_id;
+        }
         getLocationAndSend();
       }
 
@@ -105,6 +111,7 @@
               qr_code:      Number(qr),
               id_personnel: Number(id_personnel),
               tache_id:     tache_id ? Number(tache_id) : null,
+              vehicule_id:  vehicule_id ? Number(vehicule_id) : null,
               latitude:     position.coords.latitude,
               longitude:    position.coords.longitude,
               dates:        dateLocale,
