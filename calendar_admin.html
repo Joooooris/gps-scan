@@ -14,12 +14,15 @@
     --muted:        #7a8899;
     --today-bg:     #1a2332;
     --today-fg:     #ffffff;
-    --wc-bg:        #dbeafe;
-    --wc-border:    #3b82f6;
-    --wc-text:      #1d4ed8;
-    --neige-bg:     #e0f2fe;
-    --neige-border: #0ea5e9;
-    --neige-text:   #0369a1;
+    --wc-bg:           #dbeafe;
+    --wc-border:       #3b82f6;
+    --wc-text:         #1d4ed8;
+    --balayage-bg:     #d1fae5;
+    --balayage-border: #10b981;
+    --balayage-text:   #065f46;
+    --neige-bg:        #e0f2fe;
+    --neige-border:    #0ea5e9;
+    --neige-text:      #0369a1;
     --header-bg:    #1a2332;
     --header-fg:    #ffffff;
     --accent:       #3b82f6;
@@ -79,8 +82,9 @@
   .legend { display:flex; gap:12px; flex-wrap:wrap; }
   .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500; color:var(--muted); }
   .legend-dot { width:11px; height:11px; border-radius:3px; }
-  .legend-dot.wc    { background:var(--wc-border); }
-  .legend-dot.neige { background:var(--neige-border); }
+  .legend-dot.wc       { background:var(--wc-border); }
+  .legend-dot.balayage { background:var(--balayage-border); }
+  .legend-dot.neige    { background:var(--neige-border); }
   .hint { font-size:11px; color:var(--muted); font-style:italic; }
 
   .btn-stats {
@@ -152,8 +156,9 @@
     cursor:pointer; transition:filter 0.1s;
   }
   .piquet:hover { filter:brightness(0.92); }
-  .piquet.wc    { background:var(--wc-bg);    border-color:var(--wc-border);    color:var(--wc-text); }
-  .piquet.neige { background:var(--neige-bg); border-color:var(--neige-border); color:var(--neige-text); }
+  .piquet.wc       { background:var(--wc-bg);       border-color:var(--wc-border);       color:var(--wc-text); }
+  .piquet.balayage { background:var(--balayage-bg); border-color:var(--balayage-border); color:var(--balayage-text); }
+  .piquet.neige    { background:var(--neige-bg);    border-color:var(--neige-border);    color:var(--neige-text); }
   .piquet-type  { font-size:9px; font-weight:700; text-transform:uppercase; opacity:0.7; margin-bottom:1px; }
   .piquet-role  { font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
@@ -376,7 +381,8 @@
 <div class="toolbar">
   <div class="toolbar-left">
     <div class="legend">
-      <div class="legend-item"><div class="legend-dot wc"></div>WC / Balayage</div>
+      <div class="legend-item"><div class="legend-dot wc"></div>WC</div>
+      <div class="legend-item"><div class="legend-dot balayage"></div>Balayage</div>
       <div class="legend-item"><div class="legend-dot neige"></div>Neige</div>
     </div>
     <div class="hint">✏️ Cliquez sur un piquet pour modifier · sur un jour pour créer</div>
@@ -409,7 +415,8 @@
       <div class="form-row">
         <label>Type de piquet</label>
         <select id="f-type">
-          <option value="WC_balayage">🧹 WC / Balayage</option>
+          <option value="WC">🚻 WC</option>
+          <option value="balayage">🧹 Balayage</option>
           <option value="neige">❄️ Neige</option>
         </select>
       </div>
@@ -472,7 +479,8 @@
           <label>Type</label>
           <select id="s-type">
             <option value="all">Tous les types</option>
-            <option value="WC_balayage">🧹 WC / Balayage</option>
+            <option value="WC">🚻 WC</option>
+            <option value="balayage">🧹 Balayage</option>
             <option value="neige">❄️ Neige</option>
           </select>
         </div>
@@ -645,8 +653,9 @@ function renderCalendar() {
     html += `<div class="day-num">${d}</div>`;
 
     getPiquets(dateStr).forEach(p => {
-      const cls   = (p.type_piquet||'').toLowerCase() === 'neige' ? 'neige' : 'wc';
-      const label = cls === 'neige' ? '❄️ Neige' : '🧹 WC/Bal.';
+      const t     = (p.type_piquet||'').toLowerCase();
+      const cls   = t === 'neige' ? 'neige' : t === 'balayage' ? 'balayage' : 'wc';
+      const label = cls === 'neige' ? '❄️ Neige' : cls === 'balayage' ? '🧹 Balayage' : '🚻 WC';
       const tit   = [p.prenom_titulaire, p.nom_titulaire].filter(Boolean).join(' ').trim();
       const sups  = getSupplants(p);
 
@@ -671,7 +680,7 @@ function openCreate(dateStr) {
   editingId = null;
   document.getElementById('modal-title').textContent = '➕ Nouveau piquet';
   document.getElementById('btn-delete').style.display = 'none';
-  document.getElementById('f-type').value    = 'WC_balayage';
+  document.getElementById('f-type').value    = 'WC';
   document.getElementById('f-debut').value   = dateStr;
   document.getElementById('f-fin').value     = dateStr;
   document.getElementById('f-titulaire').value = '';
@@ -687,7 +696,7 @@ function openEdit(event, id) {
   editingId = id;
   document.getElementById('modal-title').textContent   = '✏️ Modifier le piquet';
   document.getElementById('btn-delete').style.display  = 'block';
-  document.getElementById('f-type').value  = p.type_piquet || 'WC_balayage';
+  document.getElementById('f-type').value  = p.type_piquet || 'WC';
   document.getElementById('f-debut').value = p.debut.substring(0,10);
   document.getElementById('f-fin').value   = p.fin.substring(0,10);
 
