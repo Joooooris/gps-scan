@@ -70,11 +70,12 @@
   .nav button:hover { background:rgba(255,255,255,0.28); }
   .nav-label { font-size:14px; font-weight:600; min-width:130px; text-align:center; text-transform:capitalize; }
 
-  /* ── Legend ── */
+  /* ── Toolbar ── */
   .toolbar {
     display:flex; align-items:center; justify-content:space-between;
     flex-wrap:wrap; gap:8px; flex-shrink:0;
   }
+  .toolbar-left { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
   .legend { display:flex; gap:12px; flex-wrap:wrap; }
   .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500; color:var(--muted); }
   .legend-dot { width:11px; height:11px; border-radius:3px; }
@@ -82,7 +83,17 @@
   .legend-dot.neige { background:var(--neige-border); }
   .hint { font-size:11px; color:var(--muted); font-style:italic; }
 
-  /* ── Calendar wrap ── */
+  .btn-stats {
+    background:var(--surface); border:1.5px solid var(--border);
+    border-radius:8px; padding:6px 14px;
+    font-size:13px; font-weight:600; color:var(--text);
+    cursor:pointer; font-family:'DM Sans',sans-serif;
+    transition:all 0.15s; white-space:nowrap;
+    display:flex; align-items:center; gap:6px;
+  }
+  .btn-stats:hover { border-color:var(--accent); color:var(--accent); background:rgba(59,130,246,0.04); }
+
+  /* ── Calendar ── */
   .cal-wrap {
     background:var(--surface); border-radius:var(--radius);
     box-shadow:var(--shadow); overflow:hidden;
@@ -127,11 +138,9 @@
   }
   .cal-day.today .day-num { background:var(--today-bg); color:var(--today-fg); font-weight:700; }
 
-  /* Add button shown on hover */
   .add-hint {
     display:none; position:absolute; bottom:3px; right:4px;
-    font-size:16px; line-height:1; opacity:0.3;
-    pointer-events:none;
+    font-size:16px; line-height:1; opacity:0.3; pointer-events:none;
   }
   .cal-day:hover:not(.empty) .add-hint { display:block; }
 
@@ -148,22 +157,29 @@
   .piquet-type  { font-size:9px; font-weight:700; text-transform:uppercase; opacity:0.7; margin-bottom:1px; }
   .piquet-role  { font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-  /* ── Modal overlay ── */
+  /* ── Overlays ── */
   .overlay {
     display:none; position:fixed; inset:0;
     background:rgba(10,15,30,0.45); backdrop-filter:blur(3px);
     z-index:100; align-items:center; justify-content:center;
+    padding:12px;
   }
   .overlay.open { display:flex; }
 
+  /* ── Modal ── */
   .modal {
     background:var(--surface); border-radius:14px;
     box-shadow:0 20px 60px rgba(0,0,0,0.25);
-    width:420px; max-width:95vw; padding:24px;
+    width:440px; max-width:100%; max-height:90vh;
+    display:flex; flex-direction:column;
     animation:slideUp 0.2s ease;
   }
+  .modal.wide { width:680px; }
   @keyframes slideUp { from { opacity:0; transform:translateY(16px); } }
 
+  .modal-body {
+    padding:24px; overflow-y:auto; flex:1; min-height:0;
+  }
   .modal-header {
     display:flex; align-items:center; justify-content:space-between;
     margin-bottom:20px;
@@ -172,11 +188,11 @@
   .modal-close {
     background:none; border:none; cursor:pointer;
     font-size:20px; color:var(--muted); line-height:1;
-    padding:2px 6px; border-radius:6px;
+    padding:2px 6px; border-radius:6px; flex-shrink:0;
   }
   .modal-close:hover { background:var(--bg); color:var(--text); }
 
-  /* Form */
+  /* ── Form ── */
   .form-row { margin-bottom:14px; }
   .form-row label {
     display:block; font-size:12px; font-weight:600;
@@ -184,7 +200,8 @@
     letter-spacing:0.5px; margin-bottom:5px;
   }
   .form-row input,
-  .form-row select {
+  .form-row select,
+  .sel-input {
     width:100%; padding:9px 11px;
     border:1.5px solid var(--border); border-radius:8px;
     font-family:'DM Sans',sans-serif; font-size:14px;
@@ -193,18 +210,49 @@
     appearance:none; -webkit-appearance:none;
   }
   .form-row input:focus,
-  .form-row select:focus {
+  .form-row select:focus,
+  .sel-input:focus {
     outline:none; border-color:var(--accent);
     box-shadow:0 0 0 3px rgba(59,130,246,0.12);
   }
-  .form-row select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a8899' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:30px; }
-
+  .form-row select,
+  .sel-input {
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a8899' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 10px center;
+    padding-right:30px;
+  }
   .form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
+  /* ── Suppléants dynamiques ── */
+  .supplant-row {
+    display:flex; gap:6px; align-items:center; margin-bottom:6px;
+  }
+  .supplant-row .sel-input {
+    flex:1; width:auto; min-width:0;
+  }
+  .btn-remove-sup {
+    flex-shrink:0; background:none;
+    border:1.5px solid var(--border); border-radius:7px;
+    width:34px; height:36px; cursor:pointer; color:var(--danger);
+    font-size:14px; transition:all 0.15s;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .btn-remove-sup:hover { background:#fef2f2; border-color:var(--danger); }
+
+  .btn-add-sup {
+    width:100%; background:none;
+    border:1.5px dashed var(--border); border-radius:8px;
+    padding:7px 12px; font-size:13px; color:var(--muted);
+    cursor:pointer; font-family:'DM Sans',sans-serif;
+    transition:all 0.15s; margin-top:2px;
+  }
+  .btn-add-sup:hover { border-color:var(--accent); color:var(--accent); background:rgba(59,130,246,0.04); }
+
+  /* ── Modal footer ── */
   .modal-footer {
     display:flex; gap:8px; justify-content:flex-end;
-    margin-top:20px; padding-top:16px;
-    border-top:1px solid var(--border);
+    padding:14px 24px 20px; border-top:1px solid var(--border);
+    flex-shrink:0;
   }
 
   .btn {
@@ -220,9 +268,82 @@
   .btn-ghost   { background:var(--bg); color:var(--text); }
   .btn-ghost:hover { background:var(--border); }
 
+  /* ── Stats ── */
+  .stats-controls {
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr auto;
+    gap:10px; align-items:end; margin-bottom:16px;
+  }
+  .stats-controls label {
+    display:block; font-size:12px; font-weight:600;
+    color:var(--muted); text-transform:uppercase;
+    letter-spacing:0.5px; margin-bottom:5px;
+  }
+  .stats-controls input,
+  .stats-controls select {
+    width:100%; padding:9px 11px;
+    border:1.5px solid var(--border); border-radius:8px;
+    font-family:'DM Sans',sans-serif; font-size:14px;
+    color:var(--text); background:var(--surface);
+    appearance:none; -webkit-appearance:none; transition:border 0.15s;
+  }
+  .stats-controls select {
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a8899' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 10px center;
+    padding-right:30px;
+  }
+  .stats-controls input:focus,
+  .stats-controls select:focus {
+    outline:none; border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(59,130,246,0.12);
+  }
 
+  .stats-table-wrap {
+    overflow-y:auto; max-height:400px;
+    border:1px solid var(--border); border-radius:8px;
+  }
+  .stats-table {
+    width:100%; border-collapse:collapse; font-size:13px;
+  }
+  .stats-table th {
+    background:#f7f9fc; padding:9px 12px; text-align:left;
+    font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.5px; color:var(--muted);
+    border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:1;
+  }
+  .stats-table th:not(:first-child) { text-align:right; }
+  .stats-table td {
+    padding:9px 12px; border-bottom:1px solid var(--border);
+  }
+  .stats-table td:not(:first-child) { text-align:right; }
+  .stats-table tr:last-child td { border-bottom:none; }
+  .stats-table tbody tr:hover td { background:#f7f9fc; }
+  .stats-table tfoot td {
+    font-weight:700; background:#f0f2f5;
+    border-top:2px solid var(--border); border-bottom:none;
+  }
 
-  /* ── Loading / Error ── */
+  .num { font-family:'DM Mono',monospace; font-weight:600; font-size:13px; }
+  .num.tit { color:var(--wc-text); }
+  .num.sup { color:var(--neige-text); }
+  .num.tot { color:var(--text); }
+
+  /* Bar mini inline */
+  .bar-wrap { display:flex; gap:2px; align-items:center; margin-top:2px; }
+  .bar-seg {
+    height:4px; border-radius:2px; min-width:2px;
+    transition:width 0.3s;
+  }
+  .bar-seg.tit { background:var(--wc-border); }
+  .bar-seg.sup { background:var(--neige-border); }
+
+  .stats-empty {
+    padding:32px; text-align:center;
+    color:var(--muted); font-size:14px;
+  }
+
+  /* ── Loading ── */
   .state-box {
     display:flex; flex-direction:column; align-items:center;
     justify-content:center; padding:40px; gap:12px;
@@ -237,8 +358,6 @@
 </style>
 </head>
 <body>
-
-
 
 <!-- Header -->
 <div class="header">
@@ -255,11 +374,14 @@
 
 <!-- Toolbar -->
 <div class="toolbar">
-  <div class="legend">
-    <div class="legend-item"><div class="legend-dot wc"></div>WC / Balayage</div>
-    <div class="legend-item"><div class="legend-dot neige"></div>Neige</div>
+  <div class="toolbar-left">
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot wc"></div>WC / Balayage</div>
+      <div class="legend-item"><div class="legend-dot neige"></div>Neige</div>
+    </div>
+    <div class="hint">✏️ Cliquez sur un piquet pour modifier · sur un jour pour créer</div>
   </div>
-  <div class="hint">✏️ Cliquez sur un piquet pour le modifier • Cliquez sur un jour pour en créer un</div>
+  <button class="btn-stats" onclick="openStats()">📊 Statistiques</button>
 </div>
 
 <!-- Calendar -->
@@ -275,45 +397,49 @@
   </div>
 </div>
 
-<!-- Modal -->
+<!-- ══ Modal : Créer / Modifier piquet ══ -->
 <div class="overlay" id="overlay">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="modal-title">Nouveau piquet</div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-
-    <div class="form-row">
-      <label>Type de piquet</label>
-      <select id="f-type">
-        <option value="WC_balayage">🧹 WC / Balayage</option>
-        <option value="neige">❄️ Neige</option>
-      </select>
-    </div>
-
-    <div class="form-row form-row-2">
-      <div class="form-row" style="margin:0">
-        <label>Date de début</label>
-        <input type="date" id="f-debut">
+    <div class="modal-body">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-title">Nouveau piquet</div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
-      <div class="form-row" style="margin:0">
-        <label>Date de fin</label>
-        <input type="date" id="f-fin">
+
+      <div class="form-row">
+        <label>Type de piquet</label>
+        <select id="f-type">
+          <option value="WC_balayage">🧹 WC / Balayage</option>
+          <option value="neige">❄️ Neige</option>
+        </select>
       </div>
-    </div>
 
-    <div class="form-row">
-      <label>Titulaire</label>
-      <select id="f-titulaire">
-        <option value="">— Sélectionner un employé —</option>
-      </select>
-    </div>
+      <div class="form-row form-row-2">
+        <div class="form-row" style="margin:0">
+          <label>Date de début</label>
+          <input type="date" id="f-debut">
+        </div>
+        <div class="form-row" style="margin:0">
+          <label>Date de fin</label>
+          <input type="date" id="f-fin">
+        </div>
+      </div>
 
-    <div class="form-row">
-      <label>Suppléant <span style="font-weight:400;text-transform:none;letter-spacing:0">(optionnel)</span></label>
-      <select id="f-supplant">
-        <option value="">— Aucun suppléant —</option>
-      </select>
+      <div class="form-row">
+        <label>Titulaire</label>
+        <select id="f-titulaire">
+          <option value="">— Sélectionner un employé —</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label>
+          Suppléants
+          <span style="font-weight:400;text-transform:none;letter-spacing:0">(optionnel)</span>
+        </label>
+        <div id="supplants-container"></div>
+        <button type="button" class="btn-add-sup" onclick="addSupplantRow()">＋ Ajouter un suppléant</button>
+      </div>
     </div>
 
     <div class="modal-footer">
@@ -324,12 +450,67 @@
   </div>
 </div>
 
+<!-- ══ Modal : Statistiques ══ -->
+<div class="overlay" id="overlay-stats">
+  <div class="modal wide">
+    <div class="modal-body">
+      <div class="modal-header">
+        <div class="modal-title">📊 Statistiques des piquets</div>
+        <button class="modal-close" onclick="closeStats()">✕</button>
+      </div>
+
+      <div class="stats-controls">
+        <div>
+          <label>Du</label>
+          <input type="date" id="s-from">
+        </div>
+        <div>
+          <label>Au</label>
+          <input type="date" id="s-to">
+        </div>
+        <div>
+          <label>Type</label>
+          <select id="s-type">
+            <option value="all">Tous les types</option>
+            <option value="WC_balayage">🧹 WC / Balayage</option>
+            <option value="neige">❄️ Neige</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="renderStats()">Calculer</button>
+      </div>
+
+      <div class="stats-table-wrap">
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th>Employé</th>
+              <th>Jours titulaire</th>
+              <th>Jours suppléant</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="stats-body">
+            <tr>
+              <td colspan="4" class="stats-empty">Sélectionnez une période et cliquez sur « Calculer ».</td>
+            </tr>
+          </tbody>
+          <tfoot id="stats-foot"></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeStats()">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Config ──────────────────────────────────────────────
-const API_PLANNING   = 'https://n8n-cbc.ch/webhook/planning';
-const API_EMPLOYEES  = 'https://n8n-cbc.ch/webhook/employees';
-const API_SAVE       = 'https://n8n-cbc.ch/webhook/planning-save';
-const API_DELETE     = 'https://n8n-cbc.ch/webhook/planning-delete';
+const API_PLANNING  = 'https://n8n-cbc.ch/webhook/planning';
+const API_EMPLOYEES = 'https://n8n-cbc.ch/webhook/employees';
+const API_SAVE      = 'https://n8n-cbc.ch/webhook/planning-save';
+const API_DELETE    = 'https://n8n-cbc.ch/webhook/planning-delete';
 // ────────────────────────────────────────────────────────
 
 const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin',
@@ -344,9 +525,9 @@ let editingId    = null;
 async function init() {
   await Promise.all([fetchPlanning(), fetchEmployees()]);
 }
-
 init();
 
+// ── Fetch ──
 async function fetchPlanning() {
   try {
     const res = await fetch(API_PLANNING);
@@ -369,23 +550,69 @@ async function fetchEmployees() {
     if(!res.ok) throw new Error();
     const json = await res.json();
     employees = Array.isArray(json) ? json : (json.data || []);
-    populateDropdowns();
+    populateTitulaireDropdown();
   } catch(err) {
     console.error('Erreur chargement employés', err);
   }
 }
 
-function populateDropdowns() {
-  const opts = employees.map(e =>
-    `<option value="${e.CP}">${e.prenom} ${e.nom}</option>`
-  ).join('');
+function populateTitulaireDropdown() {
   document.getElementById('f-titulaire').innerHTML =
-    '<option value="">— Sélectionner un employé —</option>' + opts;
-  document.getElementById('f-supplant').innerHTML =
-    '<option value="">— Aucun suppléant —</option>' + opts;
+    '<option value="">— Sélectionner un employé —</option>' +
+    employees.map(e => `<option value="${e.CP}">${e.prenom} ${e.nom}</option>`).join('');
 }
 
-// ── Render ──
+// ── Suppléants ──
+/**
+ * Normalise le champ suppléants d'une entrée planning.
+ * Supporte l'ancien format (nom_supplant / prenom_supplant)
+ * ET le nouveau format (supplants: [{CP, nom, prenom}, …]).
+ */
+function getSupplants(p) {
+  if (p.supplants && Array.isArray(p.supplants)) return p.supplants;
+  // Rétrocompatibilité : ancien champ unique
+  if (p.nom_supplant || p.prenom_supplant) {
+    const found = employees.find(e =>
+      e.nom === p.nom_supplant && e.prenom === p.prenom_supplant
+    );
+    return [{
+      CP:     found ? found.CP : null,
+      nom:    p.nom_supplant    || '',
+      prenom: p.prenom_supplant || ''
+    }];
+  }
+  return [];
+}
+
+function makeSupSelectOptions(selectedCP = '') {
+  return '<option value="">— Sélectionner —</option>' +
+    employees.map(e =>
+      `<option value="${e.CP}" ${String(e.CP) === String(selectedCP) ? 'selected' : ''}>${e.prenom} ${e.nom}</option>`
+    ).join('');
+}
+
+function addSupplantRow(selectedCP = '') {
+  const container = document.getElementById('supplants-container');
+  const row = document.createElement('div');
+  row.className = 'supplant-row';
+  row.innerHTML = `
+    <select class="sel-input supplant-sel">${makeSupSelectOptions(selectedCP)}</select>
+    <button type="button" class="btn-remove-sup" onclick="this.closest('.supplant-row').remove()" title="Retirer">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function clearSupplants() {
+  document.getElementById('supplants-container').innerHTML = '';
+}
+
+function getSelectedSupplants() {
+  return Array.from(document.querySelectorAll('.supplant-sel'))
+    .map(s => s.value)
+    .filter(v => v !== '');
+}
+
+// ── Calendar render ──
 function pad(n){ return String(n).padStart(2,'0'); }
 
 function getPiquets(dateStr) {
@@ -405,25 +632,31 @@ function renderCalendar() {
   const lastDay  = new Date(year, month+1, 0).getDate();
 
   let html = '';
-  for(let i=0;i<firstDow;i++) html += '<div class="cal-day empty"></div>';
+  for(let i=0; i<firstDow; i++) html += '<div class="cal-day empty"></div>';
 
-  for(let d=1;d<=lastDay;d++){
-    const dateStr = year+'-'+pad(month+1)+'-'+pad(d);
-    const dow     = new Date(year,month,d).getDay();
-    const isToday = dateStr===todayStr;
-    const isWE    = dow===0||dow===6;
+  for(let d=1; d<=lastDay; d++){
+    const dateStr = `${year}-${pad(month+1)}-${pad(d)}`;
+    const dow     = new Date(year, month, d).getDay();
+    const isToday = dateStr === todayStr;
+    const isWE    = dow === 0 || dow === 6;
     const classes = ['cal-day', isToday?'today':'', isWE?'weekend':''].filter(Boolean).join(' ');
 
     html += `<div class="${classes}" onclick="openCreate('${dateStr}')">`;
     html += `<div class="day-num">${d}</div>`;
 
     getPiquets(dateStr).forEach(p => {
-      const cls   = (p.type_piquet||'').toLowerCase()==='neige'?'neige':'wc';
-      const label = cls==='neige'?'❄️ Neige':'🧹 WC/Bal.';
-      const tit   = ((p.prenom_titulaire||'')+' '+(p.nom_titulaire||'')).trim();
-      html += `<div class="piquet ${cls}" onclick="openEdit(event, ${p.id_planning})">`;
+      const cls   = (p.type_piquet||'').toLowerCase() === 'neige' ? 'neige' : 'wc';
+      const label = cls === 'neige' ? '❄️ Neige' : '🧹 WC/Bal.';
+      const tit   = [p.prenom_titulaire, p.nom_titulaire].filter(Boolean).join(' ').trim();
+      const sups  = getSupplants(p);
+
+      html += `<div class="piquet ${cls}" onclick="openEdit(event,${p.id_planning})">`;
       html += `<div class="piquet-type">${label}</div>`;
       if(tit) html += `<div class="piquet-role">T: ${tit}</div>`;
+      sups.forEach(s => {
+        const sn = [s.prenom, s.nom].filter(Boolean).join(' ').trim();
+        if(sn) html += `<div class="piquet-role">S: ${sn}</div>`;
+      });
       html += `</div>`;
     });
 
@@ -433,16 +666,16 @@ function renderCalendar() {
   document.getElementById('cal-grid').innerHTML = html;
 }
 
-// ── Modal ──
+// ── Modal piquet ──
 function openCreate(dateStr) {
   editingId = null;
   document.getElementById('modal-title').textContent = '➕ Nouveau piquet';
   document.getElementById('btn-delete').style.display = 'none';
-  document.getElementById('f-type').value = 'WC_balayage';
-  document.getElementById('f-debut').value = dateStr;
-  document.getElementById('f-fin').value   = dateStr;
+  document.getElementById('f-type').value    = 'WC_balayage';
+  document.getElementById('f-debut').value   = dateStr;
+  document.getElementById('f-fin').value     = dateStr;
   document.getElementById('f-titulaire').value = '';
-  document.getElementById('f-supplant').value  = '';
+  clearSupplants();
   document.getElementById('overlay').classList.add('open');
 }
 
@@ -452,21 +685,17 @@ function openEdit(event, id) {
   if(!p) return;
 
   editingId = id;
-  document.getElementById('modal-title').textContent = '✏️ Modifier le piquet';
-  document.getElementById('btn-delete').style.display = 'block';
-  document.getElementById('f-type').value = (p.type_piquet||'WC_balayage');
+  document.getElementById('modal-title').textContent   = '✏️ Modifier le piquet';
+  document.getElementById('btn-delete').style.display  = 'block';
+  document.getElementById('f-type').value  = p.type_piquet || 'WC_balayage';
   document.getElementById('f-debut').value = p.debut.substring(0,10);
   document.getElementById('f-fin').value   = p.fin.substring(0,10);
 
-  // Trouver le CP de l'employé titulaire
-  const tit = employees.find(e =>
-    e.nom === p.nom_titulaire && e.prenom === p.prenom_titulaire
-  );
-  const sup = employees.find(e =>
-    e.nom === p.nom_supplant && e.prenom === p.prenom_supplant
-  );
+  const tit = employees.find(e => e.nom === p.nom_titulaire && e.prenom === p.prenom_titulaire);
   document.getElementById('f-titulaire').value = tit ? tit.CP : '';
-  document.getElementById('f-supplant').value  = sup ? sup.CP : '';
+
+  clearSupplants();
+  getSupplants(p).forEach(s => addSupplantRow(s.CP || ''));
 
   document.getElementById('overlay').classList.add('open');
 }
@@ -475,7 +704,6 @@ function closeModal() {
   document.getElementById('overlay').classList.remove('open');
 }
 
-// Click outside to close
 document.getElementById('overlay').addEventListener('click', e => {
   if(e.target === document.getElementById('overlay')) closeModal();
 });
@@ -486,15 +714,13 @@ async function savePiquet() {
   const fin   = document.getElementById('f-fin').value;
   const type  = document.getElementById('f-type').value;
   const tit   = document.getElementById('f-titulaire').value;
-  const sup   = document.getElementById('f-supplant').value;
+  const sups  = getSelectedSupplants();
 
   if(!debut || !fin || !tit) {
-    alert('Veuillez remplir : date début, date fin et titulaire.');
-    return;
+    alert('Veuillez remplir : date début, date fin et titulaire.'); return;
   }
   if(fin < debut) {
-    alert('La date de fin ne peut pas être avant la date de début.');
-    return;
+    alert('La date de fin ne peut pas être avant la date de début.'); return;
   }
 
   const btn = document.getElementById('btn-save');
@@ -502,11 +728,12 @@ async function savePiquet() {
 
   try {
     const body = {
-      id: editingId || undefined,
+      id:          editingId || undefined,
       debut, fin,
       type_piquet: type,
-      CE_Employe: parseInt(tit),
-      CE_Employe_Supplant: sup ? parseInt(sup) : null
+      CE_Employe:  parseInt(tit),
+      // Tableau des suppléants — nécessite mise à jour du workflow n8n
+      supplants:   sups.map(cp => parseInt(cp))
     };
 
     const res = await fetch(API_SAVE, {
@@ -515,7 +742,6 @@ async function savePiquet() {
       body: JSON.stringify(body)
     });
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
-
     closeModal();
     await fetchPlanning();
   } catch(err) {
@@ -537,12 +763,120 @@ async function deletePiquet() {
       body: JSON.stringify({ id: editingId })
     });
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
-
     closeModal();
     await fetchPlanning();
   } catch(err) {
     alert('Erreur lors de la suppression : ' + err.message);
   }
+}
+
+// ── Statistics ──
+function openStats() {
+  const today = new Date();
+  const y = today.getFullYear();
+  document.getElementById('s-from').value = `${y}-01-01`;
+  document.getElementById('s-to').value   = today.toISOString().substring(0,10);
+  document.getElementById('s-type').value = 'all';
+  document.getElementById('stats-body').innerHTML =
+    '<tr><td colspan="4" class="stats-empty">Sélectionnez une période et cliquez sur « Calculer ».</td></tr>';
+  document.getElementById('stats-foot').innerHTML = '';
+  document.getElementById('overlay-stats').classList.add('open');
+}
+
+function closeStats() {
+  document.getElementById('overlay-stats').classList.remove('open');
+}
+
+document.getElementById('overlay-stats').addEventListener('click', e => {
+  if(e.target === document.getElementById('overlay-stats')) closeStats();
+});
+
+function countOverlapDays(debut, fin, from, to) {
+  const d1 = new Date(Math.max(new Date(debut), new Date(from)));
+  const d2 = new Date(Math.min(new Date(fin),   new Date(to)));
+  if(d1 > d2) return 0;
+  return Math.round((d2 - d1) / 86400000) + 1;
+}
+
+function renderStats() {
+  const from       = document.getElementById('s-from').value;
+  const to         = document.getElementById('s-to').value;
+  const typeFilter = document.getElementById('s-type').value;
+
+  if(!from || !to) { alert('Veuillez saisir une période.'); return; }
+  if(to < from)    { alert('La date de fin doit être après la date de début.'); return; }
+
+  // Calcul des jours par employé
+  const statsMap = {}; // "Prenom Nom" → { name, tit, sup }
+
+  planningData.forEach(p => {
+    if(!p.debut || !p.fin) return;
+    if(typeFilter !== 'all' && p.type_piquet !== typeFilter) return;
+
+    const days = countOverlapDays(p.debut.substring(0,10), p.fin.substring(0,10), from, to);
+    if(days <= 0) return;
+
+    // Titulaire
+    const titName = [p.prenom_titulaire, p.nom_titulaire].filter(Boolean).join(' ').trim();
+    if(titName) {
+      if(!statsMap[titName]) statsMap[titName] = { name: titName, tit: 0, sup: 0 };
+      statsMap[titName].tit += days;
+    }
+
+    // Suppléants (supporte les deux formats)
+    getSupplants(p).forEach(s => {
+      const sName = [s.prenom, s.nom].filter(Boolean).join(' ').trim();
+      if(!sName) return;
+      if(!statsMap[sName]) statsMap[sName] = { name: sName, tit: 0, sup: 0 };
+      statsMap[sName].sup += days;
+    });
+  });
+
+  const rows = Object.values(statsMap)
+    .filter(r => r.tit > 0 || r.sup > 0)
+    .sort((a,b) => (b.tit + b.sup) - (a.tit + a.sup));
+
+  const tbody = document.getElementById('stats-body');
+  const tfoot = document.getElementById('stats-foot');
+
+  if(rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="stats-empty">Aucun piquet trouvé sur cette période.</td></tr>';
+    tfoot.innerHTML = '';
+    return;
+  }
+
+  // Max total pour les barres proportionnelles
+  const maxTotal = Math.max(...rows.map(r => r.tit + r.sup));
+
+  tbody.innerHTML = rows.map(r => {
+    const total   = r.tit + r.sup;
+    const barW    = Math.round((total / maxTotal) * 100);
+    const titPct  = total > 0 ? Math.round((r.tit / total) * barW) : 0;
+    const supPct  = barW - titPct;
+    return `
+    <tr>
+      <td>
+        <strong>${r.name}</strong>
+        <div class="bar-wrap">
+          ${titPct > 0 ? `<div class="bar-seg tit" style="width:${titPct}px" title="${r.tit}j titulaire"></div>` : ''}
+          ${supPct > 0 ? `<div class="bar-seg sup" style="width:${supPct}px" title="${r.sup}j suppléant"></div>` : ''}
+        </div>
+      </td>
+      <td><span class="num tit">${r.tit}</span></td>
+      <td><span class="num sup">${r.sup}</span></td>
+      <td><span class="num tot">${total}</span></td>
+    </tr>`;
+  }).join('');
+
+  const totTit = rows.reduce((s,r) => s + r.tit, 0);
+  const totSup = rows.reduce((s,r) => s + r.sup, 0);
+  tfoot.innerHTML = `
+    <tr>
+      <td>Total (${rows.length} employé${rows.length>1?'s':''})</td>
+      <td><span class="num tit">${totTit}</span></td>
+      <td><span class="num sup">${totSup}</span></td>
+      <td><span class="num tot">${totTit + totSup}</span></td>
+    </tr>`;
 }
 
 // ── Navigation ──
