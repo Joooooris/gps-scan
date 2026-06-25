@@ -7,23 +7,26 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:           #f0f2f5;
-    --surface:      #ffffff;
-    --border:       #e2e6ea;
-    --text:         #1a2332;
-    --muted:        #7a8899;
-    --today-bg:     #1a2332;
-    --today-fg:     #ffffff;
-    --wc-bg:        #dbeafe;
-    --wc-border:    #3b82f6;
-    --wc-text:      #1d4ed8;
-    --neige-bg:     #e0f2fe;
-    --neige-border: #0ea5e9;
-    --neige-text:   #0369a1;
-    --header-bg:    #1a2332;
-    --header-fg:    #ffffff;
-    --radius:       10px;
-    --shadow:       0 2px 12px rgba(0,0,0,0.08);
+    --bg:              #f0f2f5;
+    --surface:         #ffffff;
+    --border:          #e2e6ea;
+    --text:            #1a2332;
+    --muted:           #7a8899;
+    --today-bg:        #1a2332;
+    --today-fg:        #ffffff;
+    --wc-bg:           #dbeafe;
+    --wc-border:       #3b82f6;
+    --wc-text:         #1d4ed8;
+    --balayage-bg:     #d1fae5;
+    --balayage-border: #10b981;
+    --balayage-text:   #065f46;
+    --neige-bg:        #e0f2fe;
+    --neige-border:    #0ea5e9;
+    --neige-text:      #0369a1;
+    --header-bg:       #1a2332;
+    --header-fg:       #ffffff;
+    --radius:          10px;
+    --shadow:          0 2px 12px rgba(0,0,0,0.08);
   }
 
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -82,12 +85,11 @@
   .legend { display:flex; gap:12px; flex-wrap:wrap; flex-shrink:0; }
   .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500; color:var(--muted); }
   .legend-dot { width:11px; height:11px; border-radius:3px; }
-  .legend-dot.wc    { background:var(--wc-border); }
-  .legend-dot.neige { background:var(--neige-border); }
+  .legend-dot.wc       { background:var(--wc-border); }
+  .legend-dot.balayage { background:var(--balayage-border); }
+  .legend-dot.neige    { background:var(--neige-border); }
 
-  /* ══════════════════════════════════════
-     DESKTOP — grille 7 colonnes
-  ══════════════════════════════════════ */
+  /* ══ DESKTOP — grille 7 colonnes ══ */
   .cal-wrap {
     background: var(--surface);
     border-radius: var(--radius);
@@ -146,20 +148,19 @@
     color:var(--today-fg); font-weight:700;
   }
 
-  /* Piquet badges */
+  /* Piquet badges — desktop */
   .piquet {
     border-radius:4px; padding:2px 4px;
     margin-bottom:2px; font-size:10px;
     line-height:1.4; border-left:3px solid transparent;
   }
-  .piquet.wc    { background:var(--wc-bg);    border-color:var(--wc-border);    color:var(--wc-text); }
-  .piquet.neige { background:var(--neige-bg); border-color:var(--neige-border); color:var(--neige-text); }
+  .piquet.wc       { background:var(--wc-bg);       border-color:var(--wc-border);       color:var(--wc-text); }
+  .piquet.balayage { background:var(--balayage-bg); border-color:var(--balayage-border); color:var(--balayage-text); }
+  .piquet.neige    { background:var(--neige-bg);    border-color:var(--neige-border);    color:var(--neige-text); }
   .piquet-type  { font-size:9px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; opacity:0.75; margin-bottom:1px; }
   .piquet-role  { font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-  /* ══════════════════════════════════════
-     MOBILE — vue liste
-  ══════════════════════════════════════ */
+  /* ══ MOBILE — vue liste ══ */
   @media (max-width: 640px) {
 
     body { padding:8px; gap:8px; overflow:auto; min-height:100vh; height:auto; }
@@ -167,82 +168,73 @@
     .header h1 span { display:none; }
     .nav-label { min-width:100px; font-size:13px; }
 
-    /* Cacher la grille desktop */
-    .cal-wrap { display:none; }
-
-    /* Vue liste mobile */
-    .mobile-list {
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      flex:1;
-    }
-
-    /* Jours sans piquet → petite ligne */
-    .ml-day {
-      background:var(--surface);
-      border-radius:8px;
-      border:1px solid var(--border);
-      padding:8px 12px;
-      display:flex;
-      align-items:flex-start;
-      gap:12px;
-    }
-    .ml-day.today { border-color:var(--today-bg); border-width:2px; }
-    .ml-day.weekend { background:#fafbfc; }
-
-    .ml-date {
-      flex-shrink:0;
-      text-align:center;
-      min-width:44px;
-    }
-    .ml-date .ml-d {
-      font-family:'DM Mono',monospace;
-      font-size:22px; font-weight:700;
-      line-height:1; color:var(--text);
-    }
-    .ml-day.today .ml-date .ml-d {
-      background:var(--today-bg);
-      color:var(--today-fg);
-      border-radius:8px;
-      padding:2px 6px;
-    }
-    .ml-date .ml-dow {
-      font-size:10px; font-weight:600;
-      text-transform:uppercase;
-      letter-spacing:0.6px; color:var(--muted);
-      margin-top:2px;
-    }
-
-    .ml-content { flex:1; }
-
-    .ml-empty-day { color:#c5cdd8; font-size:12px; padding-top:4px; }
-
-    /* Piquet card en liste */
-    .ml-piquet {
-      border-radius:8px;
-      padding:8px 10px;
-      margin-bottom:4px;
-      border-left:4px solid transparent;
-    }
-    .ml-piquet:last-child { margin-bottom:0; }
-    .ml-piquet.wc    { background:var(--wc-bg);    border-color:var(--wc-border);    color:var(--wc-text); }
-    .ml-piquet.neige { background:var(--neige-bg); border-color:var(--neige-border); color:var(--neige-text); }
-
-    .ml-piquet-type {
-      font-size:10px; font-weight:700;
-      text-transform:uppercase; letter-spacing:0.5px;
-      opacity:0.7; margin-bottom:4px;
-    }
-    .ml-piquet-names { font-size:13px; font-weight:500; line-height:1.6; }
-
-    /* Masquer liste desktop sur mobile */
     .cal-wrap { display:none !important; }
     .mobile-list { display:flex !important; }
   }
 
-  /* Sur desktop, cacher la liste mobile */
-  .mobile-list { display:none; }
+  .mobile-list {
+    display:none;
+    flex-direction:column;
+    gap:6px;
+    flex:1;
+  }
+
+  .ml-day {
+    background:var(--surface);
+    border-radius:8px;
+    border:1px solid var(--border);
+    padding:8px 12px;
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+  }
+  .ml-day.today   { border-color:var(--today-bg); border-width:2px; }
+  .ml-day.weekend { background:#fafbfc; }
+
+  .ml-date {
+    flex-shrink:0;
+    text-align:center;
+    min-width:44px;
+  }
+  .ml-date .ml-d {
+    font-family:'DM Mono',monospace;
+    font-size:22px; font-weight:700;
+    line-height:1; color:var(--text);
+  }
+  .ml-day.today .ml-date .ml-d {
+    background:var(--today-bg);
+    color:var(--today-fg);
+    border-radius:8px;
+    padding:2px 6px;
+  }
+  .ml-date .ml-dow {
+    font-size:10px; font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.6px; color:var(--muted);
+    margin-top:2px;
+  }
+
+  .ml-content { flex:1; }
+  .ml-empty-day { color:#c5cdd8; font-size:12px; padding-top:4px; }
+
+  /* Piquet cards — mobile */
+  .ml-piquet {
+    border-radius:8px;
+    padding:8px 10px;
+    margin-bottom:4px;
+    border-left:4px solid transparent;
+  }
+  .ml-piquet:last-child { margin-bottom:0; }
+  .ml-piquet.wc       { background:var(--wc-bg);       border-color:var(--wc-border);       color:var(--wc-text); }
+  .ml-piquet.balayage { background:var(--balayage-bg); border-color:var(--balayage-border); color:var(--balayage-text); }
+  .ml-piquet.neige    { background:var(--neige-bg);    border-color:var(--neige-border);    color:var(--neige-text); }
+
+  .ml-piquet-type {
+    font-size:10px; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.5px;
+    opacity:0.7; margin-bottom:4px;
+  }
+  .ml-piquet-names { font-size:13px; font-weight:500; line-height:1.6; }
 
   /* ── Loading / Error ── */
   .state-box {
@@ -278,7 +270,8 @@
 
 <!-- Legend -->
 <div class="legend">
-  <div class="legend-item"><div class="legend-dot wc"></div>WC / Balayage</div>
+  <div class="legend-item"><div class="legend-dot wc"></div>WC</div>
+  <div class="legend-item"><div class="legend-dot balayage"></div>Balayage</div>
   <div class="legend-item"><div class="legend-dot neige"></div>Neige</div>
 </div>
 
@@ -314,6 +307,42 @@ const DAYS_FR   = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
 let currentDate  = new Date();
 let planningData = [];
 
+// ── Helpers ──
+
+function pad(n){ return String(n).padStart(2,'0'); }
+
+function getPiquets(dateStr) {
+  return planningData.filter(p => {
+    if (!p.debut || !p.fin) return false;
+    return dateStr >= p.debut.substring(0,10) && dateStr <= p.fin.substring(0,10);
+  });
+}
+
+/** Retourne la classe CSS et le label selon le type de piquet */
+function typeInfo(type_piquet) {
+  const t = (type_piquet || '').toLowerCase();
+  if (t === 'neige')    return { cls: 'neige',    label: '❄️ Neige' };
+  if (t === 'balayage') return { cls: 'balayage', label: '🧹 Balayage' };
+  return                       { cls: 'wc',       label: '🚻 WC' };
+}
+
+/**
+ * Retourne la liste des suppléants sous forme de chaînes "Prénom Nom".
+ * Compatible avec l'ancien format (nom_supplant / prenom_supplant)
+ * et le nouveau format (supplants: [{CP, nom, prenom}, …]).
+ */
+function getSupplantNames(p) {
+  if (p.supplants && Array.isArray(p.supplants)) {
+    return p.supplants
+      .map(s => [s.prenom, s.nom].filter(Boolean).join(' ').trim())
+      .filter(Boolean);
+  }
+  const name = [p.prenom_supplant, p.nom_supplant].filter(Boolean).join(' ').trim();
+  return name ? [name] : [];
+}
+
+// ── Fetch ──
+
 async function fetchPlanning() {
   try {
     const res = await fetch(API_URL, { method:'GET' });
@@ -327,27 +356,19 @@ async function fetchPlanning() {
       <div>Impossible de charger le planning</div>
       <div style="font-size:11px;opacity:0.6">${err.message}</div>
     </div>`;
-    document.getElementById('cal-grid').innerHTML   = errHtml;
+    document.getElementById('cal-grid').innerHTML    = errHtml;
     document.getElementById('mobile-list').innerHTML = errHtml;
   }
 }
 
-function getPiquets(dateStr) {
-  return planningData.filter(p => {
-    if (!p.debut || !p.fin) return false;
-    return dateStr >= p.debut.substring(0,10) && dateStr <= p.fin.substring(0,10);
-  });
-}
-
-function pad(n){ return String(n).padStart(2,'0'); }
+// ── Render ──
 
 function render() {
   const year  = currentDate.getFullYear();
   const month = currentDate.getMonth();
   document.getElementById('nav-label').textContent = MONTHS_FR[month] + ' ' + year;
 
-  const today    = new Date(); today.setHours(0,0,0,0);
-  const todayStr = year+'-'+pad(month+1)+'-'+pad(today.getDate());
+  const todayStr = new Date().toISOString().substring(0, 10);
   const lastDay  = new Date(year, month+1, 0).getDate();
 
   renderDesktop(year, month, lastDay, todayStr);
@@ -358,43 +379,45 @@ function render() {
 function renderDesktop(year, month, lastDay, todayStr) {
   const firstDow = (new Date(year, month, 1).getDay() + 6) % 7;
   let html = '';
-  for(let i=0;i<firstDow;i++) html += '<div class="cal-day empty"></div>';
+  for(let i=0; i<firstDow; i++) html += '<div class="cal-day empty"></div>';
 
-  for(let d=1;d<=lastDay;d++){
-    const dateStr = year+'-'+pad(month+1)+'-'+pad(d);
-    const dow     = new Date(year,month,d).getDay();
+  for(let d=1; d<=lastDay; d++){
+    const dateStr = `${year}-${pad(month+1)}-${pad(d)}`;
+    const dow     = new Date(year, month, d).getDay();
     const classes = ['cal-day', dateStr===todayStr?'today':'', (dow===0||dow===6)?'weekend':''].filter(Boolean).join(' ');
+
     html += `<div class="${classes}"><div class="day-num">${d}</div>`;
+
     getPiquets(dateStr).forEach(p => {
-      const cls   = p.type_piquet==='neige'?'neige':'wc';
-      const label = p.type_piquet==='neige'?'❄️ Neige':'🧹 WC/Balayage';
-      const tit   = ((p.prenom_titulaire||'')+' '+(p.nom_titulaire||'')).trim();
-      const sup   = ((p.prenom_supplant||'')+' '+(p.nom_supplant||'')).trim();
-      html += `<div class="piquet ${cls}"><div class="piquet-type">${label}</div>`;
+      const { cls, label } = typeInfo(p.type_piquet);
+      const tit  = [p.prenom_titulaire, p.nom_titulaire].filter(Boolean).join(' ').trim();
+      const sups = getSupplantNames(p);
+
+      html += `<div class="piquet ${cls}">`;
+      html += `<div class="piquet-type">${label}</div>`;
       if(tit) html += `<div class="piquet-role">T: ${tit}</div>`;
-      if(sup)  html += `<div class="piquet-role">S: ${sup}</div>`;
-      html += '</div>';
+      sups.forEach(s => { html += `<div class="piquet-role">S: ${s}</div>`; });
+      html += `</div>`;
     });
-    html += '</div>';
+
+    html += `</div>`;
   }
   document.getElementById('cal-grid').innerHTML = html;
 }
 
 /* ── Mobile list ── */
 function renderMobile(year, month, lastDay, todayStr) {
-  const today = new Date(); today.setHours(0,0,0,0);
   let html = '';
 
-  for(let d=1;d<=lastDay;d++){
-    const dateStr = year+'-'+pad(month+1)+'-'+pad(d);
-    const dateObj = new Date(year,month,d);
-    const dow     = dateObj.getDay();
+  for(let d=1; d<=lastDay; d++){
+    const dateStr = `${year}-${pad(month+1)}-${pad(d)}`;
+    const dow     = new Date(year, month, d).getDay();
     const piquets = getPiquets(dateStr);
-    const isToday   = dateStr===todayStr;
-    const isWeekend = dow===0||dow===6;
+    const isToday   = dateStr === todayStr;
+    const isWeekend = dow === 0 || dow === 6;
 
-    // Sur mobile, n'afficher que les jours avec piquets + aujourd'hui
-    if(piquets.length===0 && !isToday) continue;
+    // Sur mobile : n'afficher que les jours avec piquets + aujourd'hui
+    if(piquets.length === 0 && !isToday) continue;
 
     const classes = ['ml-day', isToday?'today':'', isWeekend?'weekend':''].filter(Boolean).join(' ');
 
@@ -405,19 +428,21 @@ function renderMobile(year, month, lastDay, todayStr) {
       </div>
       <div class="ml-content">`;
 
-    if(piquets.length===0){
+    if(piquets.length === 0) {
       html += `<div class="ml-empty-day">Aucun piquet</div>`;
     } else {
       piquets.forEach(p => {
-        const cls   = p.type_piquet==='neige'?'neige':'wc';
-        const label = p.type_piquet==='neige'?'❄️ Neige':'🧹 WC / Balayage';
-        const tit   = ((p.prenom_titulaire||'')+' '+(p.nom_titulaire||'')).trim();
-        const sup   = ((p.prenom_supplant||'')+' '+(p.nom_supplant||'')).trim();
-        html += `<div class="ml-piquet ${cls}">
-          <div class="ml-piquet-type">${label}</div>
-          <div class="ml-piquet-names">`;
+        const { cls, label } = typeInfo(p.type_piquet);
+        const tit  = [p.prenom_titulaire, p.nom_titulaire].filter(Boolean).join(' ').trim();
+        const sups = getSupplantNames(p);
+
+        html += `<div class="ml-piquet ${cls}">`;
+        html += `<div class="ml-piquet-type">${label}</div>`;
+        html += `<div class="ml-piquet-names">`;
         if(tit) html += `👤 T: <b>${tit}</b><br>`;
-        if(sup)  html += `👤 S: <b>${sup}</b>`;
+        sups.forEach((s, i) => {
+          html += `👤 S${sups.length > 1 ? (i+1) : ''}: <b>${s}</b>${i < sups.length-1 ? '<br>' : ''}`;
+        });
         html += `</div></div>`;
       });
     }
@@ -429,6 +454,7 @@ function renderMobile(year, month, lastDay, todayStr) {
   document.getElementById('mobile-list').innerHTML = html;
 }
 
+// ── Navigation ──
 document.getElementById('btn-prev').addEventListener('click', () => {
   currentDate.setMonth(currentDate.getMonth()-1); render();
 });
