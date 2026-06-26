@@ -46,15 +46,19 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      const WORKER_URL = "https://calm-unit-e415.j-simon.workers.dev";
-      const BUDIBASE_URL = "https://cbcsalaires.budibase.app/app/default%20workspace/cbcheures#/saisie-des-heures-";
+      const WORKER_URL     = "https://calm-unit-e415.j-simon.workers.dev";
+      const NEAREST_URL    = "https://n8n-cbc.ch/webhook/nearest-vehicle";
+      const BUDIBASE_URL   = "https://cbcsalaires.budibase.app/app/default%20workspace/cbcheures#/saisie-des-heures-";
+      const MAX_DISTANCE_M = 100;
 
       const params       = new URLSearchParams(window.location.search);
-      const qr           = params.get("qr");
+      let   qr           = params.get("qr");
       const id_personnel = params.get("id_personnel");
       const action       = params.get("action") || "debut";
       const tache_id     = params.get("tache_id") || null;
-      const vehicule_id  = params.get("vehicule_id") || null;
+      let   vehicule_id  = params.get("vehicule_id") || null;
+      // Mode GPS auto : ?gps=1 (sans QR) → détection automatique du véhicule
+      const autoDetect   = params.get("gps") === "1" && !qr;
 
       const statusElement    = document.getElementById("status");
       const qrElement        = document.getElementById("qrText");
@@ -71,31 +75,70 @@
       };
       actionElement.innerText = actionLabels[action] || "Enregistrement";
 
-      if (!qr || !id_personnel) {
-        qrElement.innerText    = "QR code ou employé manquant.";
-        employeeElement.innerText = "";
-        statusElement.innerText   = "Erreur : le lien doit contenir qr et id_personnel.";
-        statusElement.className   = "error";
-      } else {
-        qrElement.innerText       = "QR code : " + qr;
-        employeeElement.innerText = "Employé : " + id_personnel;
-        if (vehicule_id) {
-          vehiculeElement.innerText = "🚐 Véhicule : " + vehicule_id;
-        }
-        getLocationAndSend();
+      // Validations selon le mode
+      if (!id_personnel) {
+        statusElement.innerText = "Erreur : le lien doit contenir id_personnel.";
+        statusElement.className = "error";
+        return;
       }
+      if (!autoDetect && !qr) {
+        statusElement.innerText = "Erreur : le lien doit contenir qr (ou gps=1 pour détection auto).";
+        statusElement.className = "error";
+        return;
+      }
+
+      employeeElement.innerText = "Employé : " + id_personnel;
+      if (qr) qrElement.innerText = "QR code : " + qr;
+      if (vehicule_id) vehiculeElement.innerText = "🚐 Véhicule : " + vehicule_id;
+
+      getLocationAndSend();
 
       function getLocationAndSend() {
         if (!navigator.geolocation) {
-          statusElement.innerText  = "La géolocalisation n'est pas supportée par ce téléphone.";
-          statusElement.className  = "error";
+          statusElement.innerText = "La géolocalisation n'est pas supportée par ce téléphone.";
+          statusElement.className = "error";
           return;
         }
-        statusElement.innerText  = "Récupération de la position GPS...";
-        statusElement.className  = "info";
+        statusElement.innerText = "Récupération de la position GPS...";
+        statusElement.className = "info";
 
         navigator.geolocation.getCurrentPosition(
           async function (position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            // ── Mode GPS auto : détecter le véhicule le plus proche via Logifleet
+            if (autoDetect) {
+              statusElement.innerText = "🔍 Recherche du véhicule à proximité...";
+              try {
+                const url = `${NEAREST_URL}?lat=${lat}&lng=${lng}&max=${MAX_DISTANCE_M}`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const json = await res.json();
+
+                if (!json.vehicule_id) {
+                  statusElement.innerText =
+                    "❌ Aucun véhicule détecté à proximité (" + MAX_DISTANCE_M + "m). " +
+                    "Veuillez scanner un QR code.";
+                  statusElement.className = "error";
+                  return;
+                }
+
+                // Le véhicule détecté devient à la fois qr_code et vehicule_id
+                qr          = json.vehicule_id;
+                vehicule_id = json.vehicule_id;
+                qrElement.innerText       = "QR code : " + qr + " (auto)";
+                vehiculeElement.innerText =
+                  "🚐 Véhicule détecté : " + (json.nom || json.vehicule_id) +
+                  " (~" + Math.round(json.distance_m) + "m)";
+              } catch (err) {
+                statusElement.innerText = "❌ Erreur détection véhicule : " + err.message;
+                statusElement.className = "error";
+                return;
+              }
+            }
+
+            // ── Préparation du payload (commun aux deux modes) ──
             const now = new Date();
             const dateLocale =
               now.getFullYear() + "-" +
@@ -112,11 +155,12 @@
               id_personnel: Number(id_personnel),
               tache_id:     tache_id ? Number(tache_id) : null,
               vehicule_id:  vehicule_id ? Number(vehicule_id) : null,
-              latitude:     position.coords.latitude,
-              longitude:    position.coords.longitude,
+              latitude:     lat,
+              longitude:    lng,
               dates:        dateLocale,
               heures:       heureLocale,
-              timestamp:    now.toISOString()
+              timestamp:    now.toISOString(),
+              auto_detected: autoDetect    // flag pour traçabilité
             };
 
             try {
