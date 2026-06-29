@@ -116,20 +116,22 @@
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const json = await res.json();
 
-                if (!json.vehicule_id) {
-                  statusElement.innerText =
-                    "❌ Aucun véhicule détecté à proximité (" + MAX_DISTANCE_M + "m). " +
-                    "Veuillez scanner un QR code.";
+                if (!json.success || !json.qr_code) {
+                  const msg = json.message || "Aucun véhicule détecté";
+                  const debug = json.debug && json.debug.closest_outside_range
+                    ? ` (plus proche : ${json.debug.closest_outside_range.name} à ${json.debug.closest_outside_range.distance}m)`
+                    : "";
+                  statusElement.innerText = "❌ " + msg + debug + " Veuillez scanner un QR code.";
                   statusElement.className = "error";
                   return;
                 }
 
-                // Le véhicule détecté devient à la fois qr_code et vehicule_id
-                qr          = json.vehicule_id;
-                vehicule_id = json.vehicule_id;
-                qrElement.innerText       = "QR code : " + qr + " (auto)";
+                // Le véhicule détecté : qr_code = CP de la table qr_code
+                qr          = json.qr_code;
+                vehicule_id = json.qr_code;
+                qrElement.innerText       = "QR code : " + qr + " (auto-détecté)";
                 vehiculeElement.innerText =
-                  "🚐 Véhicule détecté : " + (json.nom || json.vehicule_id) +
+                  "🚐 " + (json.vehicle_description || json.vehicle_name) +
                   " (~" + Math.round(json.distance_m) + "m)";
               } catch (err) {
                 statusElement.innerText = "❌ Erreur détection véhicule : " + err.message;
