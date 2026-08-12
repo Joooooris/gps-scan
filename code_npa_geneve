@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planning tournées — Canton de Genève</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+:root{
+  --bg:#EFF2ED;
+  --panel:#FFFFFF;
+  --ink:#12232B;
+  --ink-soft:#5B6864;
+  --line:#D7DCD2;
+  --line-strong:#B9C1B4;
+  --radius:3px;
+  --warn:#B0392A;
+  --ok:#2C6B3F;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:14px;
+  line-height:1.5;
+  padding:18px 20px 28px;
+  min-height:100vh;
+}
+.wrap{max-width:1280px;margin:0 auto;}
+button, input, textarea{font-family:inherit;}
+
+/* header */
+.header{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  border-bottom:2px solid var(--ink);
+  padding-bottom:12px;margin-bottom:16px;flex-wrap:wrap;gap:8px;
+}
+.eyebrow{
+  font-family:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Consolas,"Courier New",monospace;
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);
+}
+.title{
+  font-family:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Consolas,"Courier New",monospace;
+  font-weight:700;font-size:25px;letter-spacing:-.01em;margin-top:2px;
+}
+#headerStats{
+  font-family:ui-monospace,"SF Mono","Roboto Mono",Consolas,monospace;font-size:12px;color:var(--ink-soft);
+  white-space:nowrap;
+}
+
+/* vehicle config strip */
+.vehicle-config{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
+.vehicle-chip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:6px 10px;}
+.color-pick{width:26px;height:26px;border:none;padding:0;background:none;cursor:pointer;}
+.vehicle-label-input{
+  border:none;background:transparent;font-family:ui-monospace,"SF Mono","Roboto Mono",Consolas,monospace;font-size:13px;font-weight:700;
+  color:var(--ink);width:130px;
+}
+.vehicle-label-input:focus{outline:none;border-bottom:1px solid var(--ink);}
+
+/* tabs */
+.tab-row{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;}
+#dayTabs{display:flex;gap:4px;flex-wrap:wrap;}
+.day-tab{
+  display:flex;align-items:center;gap:6px;
+  background:#E4E7DF;border:1px solid var(--line-strong);border-bottom:none;
+  border-radius:6px 6px 0 0;
+  padding:7px 6px 7px 10px;cursor:pointer;position:relative;top:1px;
+}
+.day-tab.active{background:var(--panel);border-color:var(--ink);}
+.day-tab:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+.tab-num{font-family:ui-monospace,"SF Mono","Roboto Mono",Consolas,monospace;font-size:11px;color:var(--ink-soft);}
+.tab-label-input{
+  border:none;background:transparent;font-family:ui-monospace,"SF Mono","Roboto Mono",Consolas,monospace;font-size:13px;font-weight:600;
+  color:var(--ink);width:78px;cursor:text;
+}
+.tab-label-input:focus{outline:none;}
+.tab-remove{
+  border:none;background:none;color:var(--ink-soft);cursor:pointer;font-size:16px;line-height:1;padding:0 3px;
+}
+.tab-remove:hover{color:var(--warn);}
+.tab-add{
+  border:1px dashed var(--line-strong);background:none;border-radius:6px 6px 0 0;
+  width:32px;color:var(--ink-soft);cursor:pointer;font-size:16px;position:relative;top:1px;
+}
+.tab-add:hover{border-color:var(--ink);color:var(--ink);}
+.all-tab{
+  background:var(--ink);color:#fff;border-color:var(--ink);
+  font-family:ui-monospace,"SF Mono","Roboto Mono",Consolas,monospace;font-size:11px;letter-spacing:.08em;padding:9px 14px;
+}
+.all-tab.active{background:#000;}
+
+/* main grid */
+.main-grid{
+  display:grid;grid-template-columns:340px 1fr;
+  border:1px solid var(--ink);background:var(--panel);
+}
+@media (max-width:820px){ .main-grid{grid-template-columns:1fr;} }
+
+.input-panels{border-right:1px solid var(--line-strong);}
+@media (max-width:820px){ .input-panels{border-right:none;border-bottom:1px solid var(--line-strong);} }
+
+.vehicle-card{padding:14px 16px;border-bottom:1px dashed var(--line-strong);}
+.vehicle-card:last-child{border-bottom:none;}
+.vehicle-card.readonly{background:#F7F8F5;}
+.vehicle-card-head{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;margin-bottom:8px;}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--vc);display:inline-block;flex:none;}
+.npa-input{
+  width:100%;border:1px solid var(--line-strong);border-radius:var(--radius);
+  font-family:ui-monospace,"SF Mono","Roboto Mono",Consolas,monospace;font-size:13px;
+  padding:8px;resize:vertical;background:#FCFCFA;color:var(--ink);
+}
+.npa-input:focus{outline:2px solid var(--vc);outline-offset:1px;border-color:var(--vc);}
+.vehicle-summary{margin-top:6px;font-size:12px;color:var(--ink-soft);}
+.count-ok{color:var(--ok);font-weight:600;}
+.count-warn{color:var(--warn);}
+.all-notice{padding:12px 16px;font-size:12px;color:var(--ink-soft);border-bottom:1px dashed var(--line-strong);}
+
+#map{width:100%;height:560px;}
+@media (max-width:820px){ #map{height:380px;} }
+
+.footer{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+  margin-top:14px;font-size:12px;color:var(--ink-soft);
+}
+#resetBtn{
+  border:1px solid var(--line-strong);background:var(--panel);color:var(--ink-soft);
+  padding:6px 10px;border-radius:var(--radius);cursor:pointer;font-size:12px;
+}
+#resetBtn:hover{border-color:var(--warn);color:var(--warn);}
+
+.leaflet-popup-content{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:13px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div>
+      <div class="eyebrow">Planning tournées</div>
+      <div class="title">Canton de Genève</div>
+    </div>
+    <div id="headerStats"></div>
+  </div>
+
+  <div class="vehicle-config" id="vehicleConfig"></div>
+
+  <div class="tab-row">
+    <div id="dayTabs"></div>
+    <button type="button" class="tab-add" id="addDayBtn" title="Ajouter un jour">+</button>
+    <div id="allTabHolder" style="margin-left:auto;"></div>
+  </div>
+
+  <div class="main-grid">
+    <div class="input-panels" id="inputPanels"></div>
+    <div id="map"></div>
+  </div>
+
+  <div class="footer">
+    <div id="footerStats"></div>
+    <button id="resetBtn" type="button">Réinitialiser tout</button>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ===== Base NPA canton de Genève (61 codes, source: La Poste / geolocalisation) ===== */
+const NPA_DB = {"1200":{"name":"Genève","lat":46.211672,"lng":6.134562},"1201":{"name":"Genève","lat":46.209552,"lng":6.145046},"1202":{"name":"Genève","lat":46.221864,"lng":6.139306},"1203":{"name":"Genève","lat":46.205993,"lng":6.121909},"1204":{"name":"Genève","lat":46.203545,"lng":6.14515},"1205":{"name":"Genève","lat":46.190274,"lng":6.146484},"1206":{"name":"Genève","lat":46.189679,"lng":6.15754},"1207":{"name":"Genève","lat":46.205024,"lng":6.162254},"1208":{"name":"Genève","lat":46.197608,"lng":6.166246},"1209":{"name":"Genève","lat":46.221494,"lng":6.12384},"1212":{"name":"Grand-Lancy","lat":46.161764,"lng":6.110546},"1213":{"name":"Petit-Lancy","lat":46.194573,"lng":6.111075},"1214":{"name":"Vernier","lat":46.215326,"lng":6.081984},"1215":{"name":"Genève (Aéroport)","lat":46.237246,"lng":6.115864},"1216":{"name":"Cointrin","lat":46.226536,"lng":6.104038},"1217":{"name":"Meyrin","lat":46.241576,"lng":6.085823},"1218":{"name":"Le Grand-Saconnex","lat":46.234773,"lng":6.122495},"1219":{"name":"Le Lignon","lat":46.207175,"lng":6.099802},"1220":{"name":"Les Avanchets","lat":46.22049,"lng":6.108942},"1222":{"name":"Vésenaz","lat":46.244537,"lng":6.208639},"1223":{"name":"Cologny","lat":46.212208,"lng":6.1848},"1224":{"name":"Chêne-Bougeries","lat":46.197673,"lng":6.187246},"1225":{"name":"Chêne-Bourg","lat":46.19735,"lng":6.19731},"1226":{"name":"Thônex","lat":46.192837,"lng":6.202767},"1227":{"name":"Carouge GE","lat":46.182967,"lng":6.137854},"1228":{"name":"Plan-les-Ouates","lat":46.165521,"lng":6.116018},"1231":{"name":"Conches","lat":46.186351,"lng":6.175518},"1232":{"name":"Confignon","lat":46.174031,"lng":6.083559},"1233":{"name":"Bernex","lat":46.177142,"lng":6.076485},"1234":{"name":"Vessy","lat":46.172295,"lng":6.144688},"1236":{"name":"Cartigny","lat":46.174162,"lng":6.019575},"1237":{"name":"Avully","lat":46.169609,"lng":6.001378},"1239":{"name":"Collex","lat":46.278157,"lng":6.112984},"1241":{"name":"Puplinge","lat":46.210555,"lng":6.231714},"1242":{"name":"Satigny","lat":46.22346,"lng":6.03876},"1243":{"name":"Presinge","lat":46.21208,"lng":6.25163},"1244":{"name":"Choulex","lat":46.220249,"lng":6.223224},"1245":{"name":"Collonge-Bellerive","lat":46.256861,"lng":6.202909},"1246":{"name":"Corsier GE","lat":46.262628,"lng":6.229418},"1247":{"name":"Anières","lat":46.274656,"lng":6.229239},"1248":{"name":"Hermance","lat":46.29053,"lng":6.246758},"1251":{"name":"Gy","lat":46.249595,"lng":6.254773},"1252":{"name":"Meinier","lat":46.239386,"lng":6.244161},"1253":{"name":"Vandoeuvres","lat":46.2185,"lng":6.19822},"1254":{"name":"Jussy","lat":46.234766,"lng":6.265219},"1255":{"name":"Veyrier","lat":46.178003,"lng":6.182634},"1256":{"name":"Troinex","lat":46.161224,"lng":6.151398},"1257":{"name":"La Croix-de-Rozon","lat":46.150362,"lng":6.105265},"1258":{"name":"Perly-Certoux","lat":46.155924,"lng":6.08847},"1281":{"name":"Russin","lat":46.188065,"lng":6.013572},"1283":{"name":"Dardagny / La Plaine","lat":46.194735,"lng":5.994926},"1284":{"name":"Chancy","lat":46.1495,"lng":5.972723},"1285":{"name":"Avusy","lat":46.144464,"lng":6.012291},"1286":{"name":"Soral","lat":46.144424,"lng":6.043746},"1287":{"name":"Laconnex","lat":46.155621,"lng":6.035971},"1288":{"name":"Aire-la-Ville","lat":46.190558,"lng":6.042898},"1290":{"name":"Versoix","lat":46.287694,"lng":6.165781},"1292":{"name":"Chambésy","lat":46.243046,"lng":6.142291},"1293":{"name":"Bellevue","lat":46.255762,"lng":6.147144},"1294":{"name":"Genthod","lat":46.26376,"lng":6.16132},"1298":{"name":"Céligny","lat":46.350813,"lng":6.182182}};
+
+const GENEVA_CENTER = [46.205, 6.115];
+const STORAGE_KEY = "planning-tournees-v1";
+
+/* ===== State ===== */
+let nextDayId = 1;
+function freshDay(label){
+  return { id: "day-" + (nextDayId++), label: label, texts: ["", ""] };
+}
+let state = {
+  vehicles: [
+    { label: "Véhicule 1", color: "#E0622C" },
+    { label: "Véhicule 2", color: "#2457A8" }
+  ],
+  days: [ freshDay("Jour 1") ],
+  selectedDayId: null
+};
+state.selectedDayId = state.days[0].id;
+
+let map, markersLayer;
+let saveTimer = null;
+
+/* ===== Parsing ===== */
+function parseNpaList(text){
+  const tokens = (text || "").split(/[^0-9]+/).filter(Boolean);
+  const recognized = [];
+  const unrecognized = [];
+  const seen = new Set();
+  for (const tok of tokens){
+    if (seen.has(tok)) continue;
+    seen.add(tok);
+    if (NPA_DB[tok]) recognized.push({ code: tok, name: NPA_DB[tok].name, lat: NPA_DB[tok].lat, lng: NPA_DB[tok].lng });
+    else unrecognized.push(tok);
+  }
+  return { recognized, unrecognized };
+}
+
+function getDay(id){ return state.days.find(d => d.id === id); }
+
+function getActivePoints(){
+  const daysToShow = state.selectedDayId === "ALL" ? state.days : state.days.filter(d => d.id === state.selectedDayId);
+  const byKey = new Map();
+  daysToShow.forEach(day => {
+    state.vehicles.forEach((veh, vi) => {
+      const { recognized } = parseNpaList(day.texts[vi]);
+      recognized.forEach(r => {
+        const key = r.code + "|" + vi;
+        if (!byKey.has(key)){
+          byKey.set(key, { code:r.code, name:r.name, lat:r.lat, lng:r.lng, color:veh.color, vehicleLabel:veh.label, vIndex:vi, days:[day.label] });
+        } else if (state.selectedDayId === "ALL") {
+          byKey.get(key).days.push(day.label);
+        }
+      });
+    });
+  });
+  return Array.from(byKey.values());
+}
+
+/* ===== Storage (best effort — only available inside the Claude.ai artifact viewer) ===== */
+async function saveState(){
+  try {
+    if (window.storage && window.storage.set){
+      await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+    }
+  } catch(e){ /* stockage indisponible hors de Claude.ai : on continue en mémoire */ }
+}
+function queueSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveState, 500);
+}
+async function loadState(){
+  try {
+    if (window.storage && window.storage.get){
+      const res = await window.storage.get(STORAGE_KEY, false);
+      if (res && res.value){
+        const loaded = JSON.parse(res.value);
+        if (loaded && Array.isArray(loaded.days) && loaded.days.length){
+          state = loaded;
+          const maxId = Math.max(0, ...state.days.map(d => parseInt((d.id||"day-0").split("-")[1] || "0", 10)));
+          nextDayId = maxId + 1;
+        }
+      }
+    }
+  } catch(e) { /* pas d'état sauvegardé, ou stockage indisponible : on démarre à vide */ }
+}
+
+/* ===== Rendering ===== */
+function el(tag, attrs, ...children){
+  const node = document.createElement(tag);
+  if (attrs) for (const k in attrs){
+    if (k === "class") node.className = attrs[k];
+    else if (k === "html") node.innerHTML = attrs[k];
+    else if (k.startsWith("on") && typeof attrs[k] === "function") node.addEventListener(k.slice(2), attrs[k]);
+    else node.setAttribute(k, attrs[k]);
+  }
+  children.flat().forEach(c => { if (c != null) node.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+  return node;
+}
+
+function renderVehicleConfig(){
+  const wrap = document.getElementById("vehicleConfig");
+  wrap.innerHTML = "";
+  state.vehicles.forEach((veh, vi) => {
+    const colorInput = el("input", { type:"color", value: veh.color, class:"color-pick", oninput:(e)=>{ veh.color = e.target.value; queueSave(); renderAll(); } });
+    const labelInput = el("input", { type:"text", value: veh.label, class:"vehicle-label-input", maxlength:"24",
+      oninput:(e)=>{ veh.label = e.target.value || ("Véhicule " + (vi+1)); queueSave(); renderTabsAndPanels(); } });
+    wrap.appendChild(el("div", { class:"vehicle-chip" }, colorInput, labelInput));
+  });
+}
+
+function renderTabs(){
+  const bar = document.getElementById("dayTabs");
+  bar.innerHTML = "";
+  state.days.forEach((day, idx) => {
+    const active = state.selectedDayId === day.id;
+    const num = el("span", { class:"tab-num" }, String(idx+1).padStart(2,"0"));
+    const labelInput = el("input", { type:"text", value: day.label, class:"tab-label-input", maxlength:"20",
+      oninput:(e)=>{ day.label = e.target.value || ("Jour " + (idx+1)); queueSave(); },
+      onclick:(e)=>{ e.stopPropagation(); } });
+    const removeBtn = el("button", { type:"button", class:"tab-remove", title:"Supprimer ce jour",
+      onclick:(e)=>{ e.stopPropagation(); removeDay(day.id); } }, "×");
+    const tab = el("div", { class:"day-tab" + (active ? " active" : ""), tabindex:"0", role:"button",
+      onclick:()=>selectDay(day.id),
+      onkeydown:(e)=>{ if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectDay(day.id); } } },
+      num, labelInput, removeBtn);
+    bar.appendChild(tab);
+  });
+  const allTab = el("div", { class:"day-tab all-tab" + (state.selectedDayId === "ALL" ? " active" : ""), tabindex:"0", role:"button",
+    onclick: ()=>selectDay("ALL"),
+    onkeydown:(e)=>{ if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectDay("ALL"); } } }, "VUE D'ENSEMBLE");
+  const holder = document.getElementById("allTabHolder");
+  holder.innerHTML = "";
+  holder.appendChild(allTab);
+}
+
+function renderPanels(){
+  const holder = document.getElementById("inputPanels");
+  holder.innerHTML = "";
+  if (state.selectedDayId === "ALL"){
+    holder.appendChild(el("div", { class:"all-notice" },
+      "Vue d'ensemble : tous les jours combinés, en lecture seule. Sélectionne un jour pour modifier ses codes postaux."));
+    state.vehicles.forEach((veh, vi) => {
+      let totalPts = 0;
+      state.days.forEach(d => { totalPts += parseNpaList(d.texts[vi]).recognized.length; });
+      holder.appendChild(el("div", { class:"vehicle-card readonly", style:`--vc:${veh.color}` },
+        el("div", { class:"vehicle-card-head" }, el("span",{class:"dot"}), veh.label),
+        el("div", { class:"vehicle-summary" }, totalPts + " point" + (totalPts>1?"s":"") + " sur " + state.days.length + " jour" + (state.days.length>1?"s":""))
+      ));
+    });
+    return;
+  }
+  const day = getDay(state.selectedDayId);
+  if (!day) return;
+  state.vehicles.forEach((veh, vi) => {
+    const { recognized, unrecognized } = parseNpaList(day.texts[vi]);
+    const textarea = el("textarea", { class:"npa-input", placeholder:"1219\n1214, 1217\n1228 1232 1233", rows:"6",
+      oninput:(e)=>{ day.texts[vi] = e.target.value; queueSave(); renderStatsFor(vi, day); renderMap(); } });
+    textarea.value = day.texts[vi] || "";
+    const stats = el("div", { class:"vehicle-summary", id:"stats-" + vi });
+    const card = el("div", { class:"vehicle-card", style:`--vc:${veh.color}` },
+      el("div", { class:"vehicle-card-head" }, el("span",{class:"dot"}), veh.label),
+      textarea,
+      stats
+    );
+    holder.appendChild(card);
+    renderStatsInto(stats, recognized, unrecognized);
+  });
+}
+
+function renderStatsFor(vi, day){
+  const { recognized, unrecognized } = parseNpaList(day.texts[vi]);
+  const stats = document.getElementById("stats-" + vi);
+  if (stats) renderStatsInto(stats, recognized, unrecognized);
+}
+
+function renderStatsInto(node, recognized, unrecognized){
+  node.innerHTML = "";
+  node.appendChild(el("span", { class:"count-ok" }, recognized.length + " point" + (recognized.length !== 1 ? "s" : "") + " reconnu" + (recognized.length !== 1 ? "s" : "")));
+  if (unrecognized.length){
+    node.appendChild(el("span", { class:"count-warn" }, " · non reconnu" + (unrecognized.length>1?"s":"") + " : " + unrecognized.join(", ")));
+  }
+}
+
+function renderHeaderStats(){
+  document.getElementById("headerStats").textContent =
+    state.days.length + " jour" + (state.days.length>1?"s":"") + " planifié" + (state.days.length>1?"s":"") + " · " + Object.keys(NPA_DB).length + " NPA du canton reconnus";
+}
+
+function renderMap(){
+  if (!map) return;
+  markersLayer.clearLayers();
+  const points = getActivePoints();
+  const OFFSET = 0.0011;
+  points.forEach(p => {
+    const lat = p.lat + (p.vIndex === 0 ? -OFFSET/2 : OFFSET/2);
+    const lng = p.lng + (p.vIndex === 0 ? -OFFSET/2 : OFFSET/2);
+    const marker = L.circleMarker([lat, lng], {
+      radius: 9, weight: 2, color: "#ffffff", fillColor: p.color, fillOpacity: 0.95
+    });
+    const dayInfo = p.days ? p.days.join(", ") : "";
+    marker.bindPopup(
+      "<b>" + p.code + " – " + p.name + "</b><br>" +
+      "<span style='color:" + p.color + "'>●</span> " + p.vehicleLabel +
+      (dayInfo ? "<br><span style='opacity:.7'>" + dayInfo + "</span>" : "")
+    );
+    marker.addTo(markersLayer);
+  });
+  if (points.length){
+    const bounds = L.latLngBounds(points.map(p => [p.lat, p.lng]));
+    map.fitBounds(bounds, { padding: [40,40], maxZoom: 13 });
+  } else {
+    map.setView(GENEVA_CENTER, 11);
+  }
+  const footer = document.getElementById("footerStats");
+  if (footer){
+    footer.textContent = points.length + " point" + (points.length !== 1 ? "s" : "") + " affiché" + (points.length !== 1 ? "s" : "") + " sur la carte";
+  }
+}
+
+function renderTabsAndPanels(){
+  renderTabs();
+  renderPanels();
+}
+
+function renderAll(){
+  renderVehicleConfig();
+  renderTabsAndPanels();
+  renderHeaderStats();
+  renderMap();
+}
+
+/* ===== Actions ===== */
+function selectDay(id){
+  state.selectedDayId = id;
+  renderTabsAndPanels();
+  renderMap();
+}
+function addDay(){
+  const d = freshDay("Jour " + (state.days.length + 1));
+  state.days.push(d);
+  state.selectedDayId = d.id;
+  queueSave();
+  renderTabsAndPanels();
+  renderHeaderStats();
+  renderMap();
+}
+function removeDay(id){
+  if (state.days.length <= 1){
+    alert("Il doit rester au moins un jour.");
+    return;
+  }
+  const day = getDay(id);
+  if (!confirm("Supprimer « " + day.label + " » et ses codes postaux ?")) return;
+  state.days = state.days.filter(d => d.id !== id);
+  if (state.selectedDayId === id){
+    state.selectedDayId = state.days[0].id;
+  }
+  queueSave();
+  renderTabsAndPanels();
+  renderHeaderStats();
+  renderMap();
+}
+function resetAll(){
+  if (!confirm("Réinitialiser tout le planning (véhicules, jours, codes postaux) ?")) return;
+  nextDayId = 1;
+  state = {
+    vehicles: [ { label:"Véhicule 1", color:"#E0622C" }, { label:"Véhicule 2", color:"#2457A8" } ],
+    days: [ freshDay("Jour 1") ],
+    selectedDayId: null
+  };
+  state.selectedDayId = state.days[0].id;
+  queueSave();
+  renderAll();
+}
+
+/* ===== Init ===== */
+async function init(){
+  map = L.map("map", { zoomControl: true }).setView(GENEVA_CENTER, 11);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  }).addTo(map);
+  markersLayer = L.layerGroup().addTo(map);
+
+  await loadState();
+  document.getElementById("resetBtn").addEventListener("click", resetAll);
+  document.getElementById("addDayBtn").addEventListener("click", addDay);
+  renderAll();
+}
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
