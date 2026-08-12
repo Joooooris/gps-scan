@@ -107,7 +107,7 @@ button, input, textarea{font-family:inherit;}
 .vehicle-card:last-child{border-bottom:none;}
 .vehicle-card.readonly{background:#F7F8F5;}
 .vehicle-card-head{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;margin-bottom:8px;}
-.dot{width:13px;height:13px;border-radius:50%;background:var(--day-color, #E4E7DF);border:3px solid var(--vc);box-sizing:border-box;display:inline-block;flex:none;}
+.dot{width:13px;height:13px;border-radius:50%;background:var(--vc, #E4E7DF);border:3px solid var(--day-color, #B9C1B4);box-sizing:border-box;display:inline-block;flex:none;}
 .npa-input{
   width:100%;border:1px solid var(--line-strong);border-radius:var(--radius);
   font-family:ui-monospace,"SF Mono","Roboto Mono",Consolas,monospace;font-size:13px;
@@ -389,12 +389,12 @@ function renderMap(){
         lng += (radius * Math.cos(angle)) / latCorrection;
       }
       const marker = L.circleMarker([lat, lng], {
-        radius: 10, weight: 3, color: p.vehicleColor, fillColor: p.dayColor, fillOpacity: 0.92
+        radius: 10, weight: 3, color: p.dayColor, fillColor: p.vehicleColor, fillOpacity: 0.92
       });
       marker.bindPopup(
         "<b>" + p.code + " – " + p.name + "</b><br>" +
-        "<span style='color:" + p.vehicleColor + "'>◉</span> " + p.vehicleLabel +
-        " &nbsp;·&nbsp; <span style='color:" + p.dayColor + "'>●</span> " + p.dayLabel
+        "<span style='color:" + p.vehicleColor + "'>●</span> " + p.vehicleLabel +
+        " &nbsp;·&nbsp; <span style='color:" + p.dayColor + "'>◉</span> " + p.dayLabel
       );
       marker.addTo(markersLayer);
     });
@@ -409,7 +409,7 @@ function renderMap(){
   const footer = document.getElementById("footerStats");
   if (footer){
     footer.textContent = points.length + " point" + (points.length !== 1 ? "s" : "") + " affiché" + (points.length !== 1 ? "s" : "") +
-      " sur la carte · contour = véhicule, intérieur = jour";
+      " sur la carte · intérieur = véhicule, contour = jour";
   }
 }
 
