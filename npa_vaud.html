@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planning tournées — Canton de Vaud</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+:root{
+  --bg:#EFF2ED;
+  --panel:#FFFFFF;
+  --ink:#12232B;
+  --ink-soft:#5B6864;
+  --line:#D7DCD2;
+  --line-strong:#B9C1B4;
+  --radius:3px;
+  --warn:#B0392A;
+  --ok:#2C6B3F;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:14px;
+  line-height:1.5;
+  padding:18px 20px 28px;
+  min-height:100vh;
+}
+.wrap{max-width:1280px;margin:0 auto;}
+button, input, textarea{font-family:inherit;}
+
+/* header */
+.header{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  border-bottom:2px solid var(--ink);
+  padding-bottom:12px;margin-bottom:16px;flex-wrap:wrap;gap:8px;
+}
+.eyebrow{
+  font-family:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Consolas,"Courier New",monospace;
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);
+}
+.title{
+  font-family:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Consolas,"Courier New",monospace;
+  font-weight:700;font-size:25px;letter-spacing:-.01em;margin-top:2px;
+}
+#headerStats{
+  font-family:ui-monospace,"SF Mono","Roboto Mono",Consolas,monospace;font-size:12px;color:var(--ink-soft);
+  white-space:nowrap;
+}
+
+/* vehicle config strip */
+.vehicle-config{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
+.vehicle-chip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:6px 10px;}
+.color-pick{width:26px;height:26px;border:none;padding:0;background:none;cursor:pointer;}
+.vehicle-label-input{
+  border:none;background:transparent;font-family:ui-monospace,"SF Mono","Roboto Mono",Consolas,monospace;font-size:13px;font-weight:700;
+  color:var(--ink);width:130px;
+}
+.vehicle-label-input:focus{outline:none;border-bottom:1px solid var(--ink);}
+.vehicle-remove{border:none;background:none;color:var(--ink-soft);cursor:pointer;font-size:15px;line-height:1;padding:0 2px;}
+.vehicle-remove:hover{color:var(--warn);}
+.vehicle-add{border:1px dashed var(--line-strong);background:var(--panel);border-radius:var(--radius);padding:6px 12px;color:var(--ink-soft);cursor:pointer;font-size:13px;font-family:ui-monospace,"SF Mono","Roboto Mono",Consolas,monospace;font-weight:600;}
+.vehicle-add:hover{border-color:var(--ink);color:var(--ink);}
+
+/* tabs */
+.tab-row{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;}
+#dayTabs{display:flex;gap:4px;flex-wrap:wrap;}
+.day-tab{
+  display:flex;align-items:center;gap:6px;
+  background:#E4E7DF;border:1px solid var(--line-strong);border-bottom:none;
+  border-radius:6px 6px 0 0;
+  padding:7px 6px 7px 10px;cursor:pointer;position:relative;top:1px;
+}
+.day-tab.active{background:var(--panel);border-color:var(--ink);}
+.day-tab:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+.tab-num{font-family:ui-monospace,"SF Mono","Roboto Mono",Consolas,monospace;font-size:11px;color:var(--ink-soft);}
+.tab-daydot{width:9px;height:9px;border-radius:50%;flex:none;}
+.tab-label-input{
+  border:none;background:transparent;font-family:ui-monospace,"SF Mono","Roboto Mono",Consolas,monospace;font-size:13px;font-weight:600;
+  color:var(--ink);width:78px;cursor:text;
+}
+.tab-label-input:focus{outline:none;}
+.tab-remove{
+  border:none;background:none;color:var(--ink-soft);cursor:pointer;font-size:16px;line-height:1;padding:0 3px;
+}
+.tab-remove:hover{color:var(--warn);}
+.tab-add{
+  border:1px dashed var(--line-strong);background:none;border-radius:6px 6px 0 0;
+  width:32px;color:var(--ink-soft);cursor:pointer;font-size:16px;position:relative;top:1px;
+}
+.tab-add:hover{border-color:var(--ink);color:var(--ink);}
+.all-tab{
+  background:var(--ink);color:#fff;border-color:var(--ink);
+  font-family:ui-monospace,"SF Mono","Roboto Mono",Consolas,monospace;font-size:11px;letter-spacing:.08em;padding:9px 14px;
+}
+.all-tab.active{background:#000;}
+
+/* main grid */
+.main-grid{
+  display:grid;grid-template-columns:340px 1fr;
+  border:1px solid var(--ink);background:var(--panel);
+}
+@media (max-width:820px){ .main-grid{grid-template-columns:1fr;} }
+
+.input-panels{border-right:1px solid var(--line-strong);}
+@media (max-width:820px){ .input-panels{border-right:none;border-bottom:1px solid var(--line-strong);} }
+
+.vehicle-card{padding:14px 16px;border-bottom:1px dashed var(--line-strong);}
+.vehicle-card:last-child{border-bottom:none;}
+.vehicle-card.readonly{background:#F7F8F5;}
+.vehicle-card-head{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;margin-bottom:8px;}
+.dot{width:13px;height:13px;border-radius:50%;background:var(--vc, #E4E7DF);border:3px solid var(--day-color, #B9C1B4);box-sizing:border-box;display:inline-block;flex:none;}
+.npa-input{
+  width:100%;border:1px solid var(--line-strong);border-radius:var(--radius);
+  font-family:ui-monospace,"SF Mono","Roboto Mono",Consolas,monospace;font-size:13px;
+  padding:8px;resize:vertical;background:#FCFCFA;color:var(--ink);
+}
+.npa-input:focus{outline:2px solid var(--vc);outline-offset:1px;border-color:var(--vc);}
+.vehicle-summary{margin-top:6px;font-size:12px;color:var(--ink-soft);}
+.count-ok{color:var(--ok);font-weight:600;}
+.count-warn{color:var(--warn);}
+.all-notice{padding:12px 16px;font-size:12px;color:var(--ink-soft);border-bottom:1px dashed var(--line-strong);}
+
+#map{width:100%;height:560px;}
+@media (max-width:820px){ #map{height:380px;} }
+
+.footer{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+  margin-top:14px;font-size:12px;color:var(--ink-soft);
+}
+#resetBtn{
+  border:1px solid var(--line-strong);background:var(--panel);color:var(--ink-soft);
+  padding:6px 10px;border-radius:var(--radius);cursor:pointer;font-size:12px;
+}
+#resetBtn:hover{border-color:var(--warn);color:var(--warn);}
+
+.leaflet-popup-content{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:13px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div>
+      <div class="eyebrow">Planning tournées</div>
+      <div class="title">Canton de Vaud</div>
+    </div>
+    <div id="headerStats"></div>
+  </div>
+
+  <div class="vehicle-config" id="vehicleConfig"></div>
+
+  <div class="tab-row">
+    <div id="dayTabs"></div>
+    <button type="button" class="tab-add" id="addDayBtn" title="Ajouter un jour">+</button>
+    <div id="allTabHolder" style="margin-left:auto;"></div>
+  </div>
+
+  <div class="main-grid">
+    <div class="input-panels" id="inputPanels"></div>
+    <div id="map"></div>
+  </div>
+
+  <div class="footer">
+    <div id="footerStats"></div>
+    <button id="resetBtn" type="button">Réinitialiser tout</button>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ===== Base NPA canton de Vaud (335 codes, source: La Poste / geolocalisation) ===== */
+const NPA_DB = {"1000":{"name":"Lausanne","lat":46.567488,"lng":6.680964},"1003":{"name":"Lausanne","lat":46.520793,"lng":6.631489},"1004":{"name":"Lausanne","lat":46.530039,"lng":6.617949},"1005":{"name":"Lausanne","lat":46.520139,"lng":6.64275},"1006":{"name":"Lausanne","lat":46.509654,"lng":6.636026},"1007":{"name":"Lausanne","lat":46.516054,"lng":6.608998},"1008":{"name":"Prilly","lat":46.543216,"lng":6.602997},"1009":{"name":"Pully","lat":46.513112,"lng":6.659657},"1010":{"name":"Lausanne","lat":46.53327,"lng":6.647725},"1011":{"name":"Lausanne","lat":46.525628,"lng":6.641889},"1012":{"name":"Lausanne","lat":46.527749,"lng":6.65737},"1014":{"name":"Lausanne Adm cant VD","lat":46.520502,"lng":6.626834},"1015":{"name":"Lausanne","lat":46.556672,"lng":6.683378},"1017":{"name":"Lausanne Charles Veillon SA","lat":46.838382,"lng":6.97316},"1018":{"name":"Lausanne","lat":46.534157,"lng":6.630321},"1019":{"name":"Lausanne Services spéciaux","lat":46.838382,"lng":6.97316},"1020":{"name":"Renens VD","lat":46.53381,"lng":6.59137},"1022":{"name":"Chavannes-près-Renens","lat":46.527867,"lng":6.571824},"1023":{"name":"Crissier","lat":46.551869,"lng":6.574346},"1024":{"name":"Ecublens VD","lat":46.526205,"lng":6.556992},"1025":{"name":"St-Sulpice VD","lat":46.512766,"lng":6.56122},"1026":{"name":"Denges","lat":46.530018,"lng":6.541664},"1027":{"name":"Lonay","lat":46.526647,"lng":6.520549},"1028":{"name":"Préverenges","lat":46.517083,"lng":6.528045},"1029":{"name":"Villars-Ste-Croix","lat":46.567979,"lng":6.561225},"1030":{"name":"Bussigny","lat":46.551743,"lng":6.558615},"1031":{"name":"Mex VD","lat":46.577693,"lng":6.552557},"1032":{"name":"Romanel-sur-Lausanne","lat":46.568458,"lng":6.6103},"1033":{"name":"Cheseaux-sur-Lausanne","lat":46.58128,"lng":6.606714},"1034":{"name":"Boussens","lat":46.602738,"lng":6.583852},"1035":{"name":"Bournens","lat":46.604196,"lng":6.563689},"1036":{"name":"Sullens","lat":46.593596,"lng":6.566009},"1037":{"name":"Etagnières","lat":46.599897,"lng":6.612919},"1038":{"name":"Bercher","lat":46.692062,"lng":6.708587},"1039":{"name":"Cheseaux Polyval","lat":46.229933,"lng":6.953277},"1040":{"name":"Echallens","lat":46.645176,"lng":6.625263},"1041":{"name":"Dommartin","lat":46.638986,"lng":6.686153},"1042":{"name":"Assens","lat":46.620828,"lng":6.599383},"1043":{"name":"Sugnens","lat":46.6552,"lng":6.67183},"1044":{"name":"Fey","lat":46.67606,"lng":6.68168},"1045":{"name":"Ogens","lat":46.710418,"lng":6.723491},"1046":{"name":"Rueyres","lat":46.693702,"lng":6.692656},"1047":{"name":"Oppens","lat":46.713982,"lng":6.691683},"1052":{"name":"Le Mont-sur-Lausanne","lat":46.553312,"lng":6.633991},"1053":{"name":"Cugy VD","lat":46.591165,"lng":6.64873},"1054":{"name":"Morrens VD","lat":46.59107,"lng":6.62568},"1055":{"name":"Froideville","lat":46.601503,"lng":6.682207},"1058":{"name":"Villars-Tiercelin","lat":46.62569,"lng":6.70336},"1059":{"name":"Peney-le-Jorat","lat":46.632148,"lng":6.728431},"1061":{"name":"Villars-Mendraz","lat":46.647426,"lng":6.729235},"1062":{"name":"Sottens","lat":46.655389,"lng":6.742173},"1063":{"name":"Peyres-Possens","lat":46.66735,"lng":6.724245},"1066":{"name":"Epalinges","lat":46.54634,"lng":6.667314},"1068":{"name":"Les Monts-de-Pully","lat":46.535411,"lng":6.688348},"1070":{"name":"Puidoux","lat":46.510016,"lng":6.783644},"1071":{"name":"Chexbres","lat":46.480317,"lng":6.789927},"1072":{"name":"Forel (Lavaux)","lat":46.54338,"lng":6.77082},"1073":{"name":"Savigny","lat":46.546275,"lng":6.729299},"1076":{"name":"Ferlens VD","lat":46.588943,"lng":6.785547},"1077":{"name":"Servion","lat":46.57147,"lng":6.77879},"1078":{"name":"Essertes","lat":46.56237,"lng":6.789128},"1080":{"name":"Les Cullayes","lat":46.5721,"lng":6.754307},"1081":{"name":"Montpreveyres","lat":46.582121,"lng":6.74081},"1082":{"name":"Corcelles-le-Jorat","lat":46.6065,"lng":6.742289},"1083":{"name":"Mézières VD","lat":46.595527,"lng":6.770288},"1084":{"name":"Carrouge VD","lat":46.604393,"lng":6.774816},"1085":{"name":"Vulliens","lat":46.622324,"lng":6.792134},"1088":{"name":"Ropraz","lat":46.615243,"lng":6.751511},"1090":{"name":"La Croix (Lutry)","lat":46.732803,"lng":6.930745},"1091":{"name":"Grandvaux","lat":46.503796,"lng":6.722771},"1092":{"name":"Belmont-sur-Lausanne","lat":46.519127,"lng":6.678912},"1093":{"name":"La Conversion","lat":46.51529,"lng":6.684432},"1094":{"name":"Paudex","lat":46.508632,"lng":6.674306},"1095":{"name":"Lutry","lat":46.508863,"lng":6.692829},"1096":{"name":"Cully","lat":46.487967,"lng":6.737274},"1097":{"name":"Riex","lat":46.493415,"lng":6.736272},"1098":{"name":"Epesses","lat":46.493521,"lng":6.746422},"1110":{"name":"Morges","lat":46.51296,"lng":6.494382},"1112":{"name":"Echichens","lat":46.526053,"lng":6.498251},"1113":{"name":"St-Saphorin-sur-Morges","lat":46.546752,"lng":6.485102},"1114":{"name":"Colombier VD","lat":46.556303,"lng":6.472837},"1115":{"name":"Vullierens","lat":46.574837,"lng":6.484445},"1116":{"name":"Cottens VD","lat":46.572082,"lng":6.453994},"1117":{"name":"Grancy","lat":46.598775,"lng":6.461849},"1121":{"name":"Bremblens","lat":46.545488,"lng":6.51861},"1122":{"name":"Romanel-sur-Morges","lat":46.555553,"lng":6.510874},"1123":{"name":"Aclens","lat":46.567792,"lng":6.50996},"1124":{"name":"Gollion","lat":46.585281,"lng":6.506793},"1125":{"name":"Monnaz","lat":46.528668,"lng":6.479006},"1126":{"name":"Vaux-sur-Morges","lat":46.535532,"lng":6.463276},"1127":{"name":"Clarmont","lat":46.546847,"lng":6.449906},"1128":{"name":"Reverolle","lat":46.541376,"lng":6.438683},"1131":{"name":"Tolochenaz","lat":46.499286,"lng":6.479896},"1132":{"name":"Lully VD","lat":46.50501,"lng":6.464145},"1134":{"name":"Chigny","lat":46.522457,"lng":6.475711},"1135":{"name":"Denens","lat":46.51844,"lng":6.45656},"1136":{"name":"Bussy-Chardonney","lat":46.529067,"lng":6.44186},"1141":{"name":"Sévery","lat":46.576006,"lng":6.438251},"1142":{"name":"Pampigny","lat":46.580344,"lng":6.427486},"1143":{"name":"Apples","lat":46.552191,"lng":6.428938},"1144":{"name":"Ballens","lat":46.554353,"lng":6.375308},"1145":{"name":"Bière","lat":46.537377,"lng":6.333969},"1146":{"name":"Mollens VD","lat":46.577066,"lng":6.363767},"1147":{"name":"Montricher","lat":46.599796,"lng":6.375864},"1148":{"name":"Mont-la-Ville","lat":46.631159,"lng":6.419177},"1149":{"name":"Berolle","lat":46.558338,"lng":6.336941},"1162":{"name":"St-Prex","lat":46.484338,"lng":6.44526},"1163":{"name":"Etoy","lat":46.48603,"lng":6.419231},"1164":{"name":"Buchillon","lat":46.469383,"lng":6.410679},"1165":{"name":"Allaman","lat":46.470324,"lng":6.39388},"1166":{"name":"Perroy","lat":46.469658,"lng":6.362562},"1167":{"name":"Lussy-sur-Morges","lat":46.503959,"lng":6.4502},"1168":{"name":"Villars-sous-Yens","lat":46.510187,"lng":6.428715},"1169":{"name":"Yens","lat":46.519616,"lng":6.417917},"1170":{"name":"Aubonne","lat":46.49125,"lng":6.396429},"1172":{"name":"Bougy-Villars","lat":46.48165,"lng":6.354642},"1173":{"name":"Féchy","lat":46.47957,"lng":6.372875},"1174":{"name":"Montherod","lat":46.497241,"lng":6.351411},"1175":{"name":"Lavigny","lat":46.50125,"lng":6.404401},"1176":{"name":"St-Livres","lat":46.507684,"lng":6.387565},"1180":{"name":"Rolle","lat":46.466389,"lng":6.321534},"1182":{"name":"Gilly","lat":46.460216,"lng":6.299916},"1183":{"name":"Bursins","lat":46.45207,"lng":6.287917},"1184":{"name":"Luins","lat":46.445192,"lng":6.276521},"1185":{"name":"Mont-sur-Rolle","lat":46.469305,"lng":6.340544},"1186":{"name":"Essertines-sur-Rolle","lat":46.492086,"lng":6.317303},"1187":{"name":"St-Oyens","lat":46.498721,"lng":6.308268},"1188":{"name":"Gimel","lat":46.511608,"lng":6.283739},"1189":{"name":"Saubraz","lat":46.514344,"lng":6.330464},"1195":{"name":"Bursinel","lat":46.436538,"lng":6.307098},"1196":{"name":"Gland","lat":46.416784,"lng":6.271668},"1197":{"name":"Prangins","lat":46.398341,"lng":6.256328},"1260":{"name":"Nyon","lat":46.378654,"lng":6.227212},"1261":{"name":"Le Vaud","lat":46.487068,"lng":6.248141},"1262":{"name":"Eysins","lat":46.381576,"lng":6.208885},"1263":{"name":"Crassier","lat":46.374466,"lng":6.16358},"1264":{"name":"St-Cergue","lat":46.44895,"lng":6.127214},"1265":{"name":"La Cure","lat":46.455635,"lng":6.088403},"1266":{"name":"Duillier","lat":46.409546,"lng":6.236783},"1267":{"name":"Coinsins","lat":46.426703,"lng":6.243267},"1268":{"name":"Begnins","lat":46.45421,"lng":6.25235},"1269":{"name":"Bassins","lat":46.466237,"lng":6.231541},"1270":{"name":"Trélex","lat":46.415351,"lng":6.204892},"1271":{"name":"Givrins","lat":46.428946,"lng":6.201878},"1272":{"name":"Genolier","lat":46.434996,"lng":6.217922},"1273":{"name":"Arzier-Le Muids","lat":46.453931,"lng":6.219718},"1274":{"name":"Grens","lat":46.391622,"lng":6.193622},"1275":{"name":"Chéserex","lat":46.40057,"lng":6.17475},"1276":{"name":"Gingins","lat":46.42568,"lng":6.152367},"1277":{"name":"Arnex-sur-Nyon","lat":46.376935,"lng":6.184532},"1278":{"name":"La Rippe","lat":46.381516,"lng":6.150842},"1279":{"name":"Bogis-Bossey","lat":46.348036,"lng":6.163801},"1290":{"name":"Chavannes-des-Bois","lat":46.315878,"lng":6.133293},"1291":{"name":"Commugny","lat":46.318705,"lng":6.177458},"1295":{"name":"Mies","lat":46.307387,"lng":6.15775},"1296":{"name":"Coppet","lat":46.322383,"lng":6.191887},"1297":{"name":"Founex","lat":46.33666,"lng":6.176909},"1299":{"name":"Crans-près-Céligny","lat":46.364906,"lng":6.20676},"1302":{"name":"Vufflens-la-Ville","lat":46.578799,"lng":6.539418},"1303":{"name":"Penthaz","lat":46.599313,"lng":6.539251},"1304":{"name":"Allens","lat":46.616281,"lng":6.496964},"1305":{"name":"Penthalaz","lat":46.610028,"lng":6.525558},"1306":{"name":"Daillens","lat":46.620518,"lng":6.548523},"1307":{"name":"Lussery-Villars","lat":46.630402,"lng":6.524831},"1308":{"name":"La Chaux (Cossonay)","lat":46.61804,"lng":6.475585},"1312":{"name":"Eclépens","lat":46.652523,"lng":6.529666},"1313":{"name":"Ferreyres","lat":46.658335,"lng":6.48562},"1315":{"name":"La Sarraz","lat":46.658234,"lng":6.512684},"1316":{"name":"Chevilly","lat":46.642516,"lng":6.476833},"1317":{"name":"Orny","lat":46.667378,"lng":6.526064},"1318":{"name":"Pompaples","lat":46.666893,"lng":6.507283},"1321":{"name":"Arnex-sur-Orbe","lat":46.693886,"lng":6.518745},"1322":{"name":"Croy","lat":46.694032,"lng":6.477161},"1323":{"name":"Romainmôtier","lat":46.689772,"lng":6.459348},"1324":{"name":"Premier","lat":46.704421,"lng":6.444582},"1325":{"name":"Vaulion","lat":46.687902,"lng":6.388939},"1326":{"name":"Juriens","lat":46.69138,"lng":6.448674},"1329":{"name":"Bretonnières","lat":46.712088,"lng":6.474317},"1337":{"name":"Vallorbe","lat":46.719611,"lng":6.388345},"1338":{"name":"Ballaigues","lat":46.729689,"lng":6.415924},"1341":{"name":"Orient","lat":46.591065,"lng":6.264726},"1342":{"name":"Le Pont","lat":46.668618,"lng":6.328283},"1343":{"name":"Les Charbonnières","lat":46.666297,"lng":6.315135},"1344":{"name":"L'Abbaye","lat":46.636425,"lng":6.320202},"1345":{"name":"Le Lieu","lat":46.645466,"lng":6.269434},"1346":{"name":"Les Bioux","lat":46.62546,"lng":6.27913},"1347":{"name":"Le Sentier","lat":46.613954,"lng":6.237492},"1348":{"name":"Le Brassus","lat":46.574336,"lng":6.220829},"1350":{"name":"Orbe","lat":46.72933,"lng":6.532359},"1352":{"name":"Agiez","lat":46.720125,"lng":6.509754},"1353":{"name":"Bofflens","lat":46.705068,"lng":6.498238},"1354":{"name":"Montcherand","lat":46.73381,"lng":6.50864},"1355":{"name":"L'Abergement","lat":46.752084,"lng":6.493802},"1356":{"name":"La Russille","lat":46.734053,"lng":6.471176},"1357":{"name":"Lignerolle","lat":46.739957,"lng":6.456548},"1358":{"name":"Valeyres-sous-Rances","lat":46.75335,"lng":6.525789},"1372":{"name":"Bavois","lat":46.686018,"lng":6.565372},"1373":{"name":"Chavornay","lat":46.708813,"lng":6.570769},"1374":{"name":"Corcelles-sur-Chavornay","lat":46.702945,"lng":6.59965},"1375":{"name":"Penthéréaz","lat":46.681803,"lng":6.603728},"1376":{"name":"Eclagnens","lat":46.658627,"lng":6.594953},"1377":{"name":"Oulens-sous-Echallens","lat":46.641945,"lng":6.577066},"1400":{"name":"Yverdon-les-Bains","lat":46.77981,"lng":6.661844},"1404":{"name":"Cuarny","lat":46.775704,"lng":6.693025},"1405":{"name":"Pomy","lat":46.760126,"lng":6.667918},"1406":{"name":"Cronay","lat":46.757198,"lng":6.696824},"1407":{"name":"Bioley-Magnoux","lat":46.739745,"lng":6.713601},"1408":{"name":"Prahins","lat":46.734438,"lng":6.740425},"1409":{"name":"Chanéaz","lat":46.729668,"lng":6.742615},"1410":{"name":"Correvon","lat":46.707651,"lng":6.7525},"1412":{"name":"Ursins","lat":46.740607,"lng":6.662023},"1413":{"name":"Orzens","lat":46.724128,"lng":6.683913},"1415":{"name":"Démoret","lat":46.753858,"lng":6.752886},"1416":{"name":"Pailly","lat":46.700334,"lng":6.674291},"1417":{"name":"Essertines-sur-Yverdon","lat":46.723454,"lng":6.644543},"1418":{"name":"Vuarrens","lat":46.689574,"lng":6.646899},"1420":{"name":"Fiez","lat":46.826952,"lng":6.623578},"1421":{"name":"Fontaines-sur-Grandson","lat":46.836949,"lng":6.613263},"1422":{"name":"Grandson","lat":46.809364,"lng":6.645415},"1423":{"name":"Fontanezier","lat":46.84943,"lng":6.640442},"1424":{"name":"Champagne","lat":46.83086,"lng":6.6583},"1425":{"name":"Onnens VD","lat":46.839655,"lng":6.68661},"1426":{"name":"Concise","lat":46.856399,"lng":6.711369},"1427":{"name":"Bonvillars","lat":46.842421,"lng":6.667893},"1428":{"name":"Mutrux","lat":46.885343,"lng":6.707279},"1429":{"name":"Giez","lat":46.81201,"lng":6.6183},"1430":{"name":"Orges","lat":46.80801,"lng":6.588356},"1431":{"name":"Vugelles-La Mothe","lat":46.822061,"lng":6.576701},"1432":{"name":"Belmont-sur-Yverdon","lat":46.74222,"lng":6.63374},"1433":{"name":"Suchy","lat":46.722834,"lng":6.598962},"1434":{"name":"Ependes VD","lat":46.742809,"lng":6.608145},"1435":{"name":"Essert-Pittet","lat":46.727822,"lng":6.583526},"1436":{"name":"Chamblon","lat":46.776082,"lng":6.606741},"1437":{"name":"Suscévaz","lat":46.764175,"lng":6.577997},"1438":{"name":"Mathod","lat":46.767428,"lng":6.565628},"1439":{"name":"Rances","lat":46.760201,"lng":6.529974},"1441":{"name":"Valeyres-sous-Montagny","lat":46.798933,"lng":6.608839},"1442":{"name":"Montagny-près-Yverdon","lat":46.79228,"lng":6.610128},"1443":{"name":"Champvent","lat":46.787541,"lng":6.580237},"1445":{"name":"Vuiteboeuf","lat":46.80375,"lng":6.558645},"1446":{"name":"Baulmes","lat":46.789516,"lng":6.521739},"1450":{"name":"La Sagne (Ste-Croix)","lat":46.818338,"lng":6.505904},"1452":{"name":"Les Rasses","lat":46.829451,"lng":6.539615},"1453":{"name":"Bullet","lat":46.843319,"lng":6.585351},"1454":{"name":"L'Auberson","lat":46.830216,"lng":6.473524},"1462":{"name":"Yvonand","lat":46.793094,"lng":6.737339},"1463":{"name":"Rovray","lat":46.791626,"lng":6.771158},"1464":{"name":"Chavannes-le-Chêne","lat":46.775112,"lng":6.775055},"1509":{"name":"Vucherens","lat":46.624892,"lng":6.779902},"1510":{"name":"Moudon","lat":46.655121,"lng":6.788026},"1512":{"name":"Chavannes-sur-Moudon","lat":46.656903,"lng":6.808363},"1513":{"name":"Hermenches","lat":46.647025,"lng":6.768172},"1514":{"name":"Bussy-sur-Moudon","lat":46.686698,"lng":6.811379},"1515":{"name":"Neyruz-sur-Moudon","lat":46.703309,"lng":6.792792},"1521":{"name":"Curtilles","lat":46.699182,"lng":6.849532},"1522":{"name":"Lucens","lat":46.706525,"lng":6.823761},"1523":{"name":"Granges-près-Marnand","lat":46.76336,"lng":6.88765},"1524":{"name":"Marnand","lat":46.7558,"lng":6.90078},"1525":{"name":"Henniez","lat":46.732891,"lng":6.87672},"1526":{"name":"Cremin","lat":46.726592,"lng":6.833645},"1530":{"name":"Payerne","lat":46.83419,"lng":6.928969},"1534":{"name":"Sassel","lat":46.7759,"lng":6.85872},"1535":{"name":"Combremont-le-Grand","lat":46.762984,"lng":6.819238},"1536":{"name":"Combremont-le-Petit","lat":46.7494,"lng":6.80999},"1537":{"name":"Champtauroz","lat":46.760289,"lng":6.787622},"1538":{"name":"Treytorrens (Payerne)","lat":46.771615,"lng":6.799977},"1543":{"name":"Grandcour","lat":46.871379,"lng":6.937516},"1545":{"name":"Chevroux","lat":46.891279,"lng":6.910957},"1551":{"name":"Vers-chez-Perrin","lat":46.794131,"lng":6.941226},"1552":{"name":"Trey","lat":46.770758,"lng":6.920795},"1554":{"name":"Rossens VD","lat":46.741374,"lng":6.932918},"1555":{"name":"Villarzel","lat":46.745369,"lng":6.910262},"1562":{"name":"Corcelles-près-Payerne","lat":46.830942,"lng":6.962266},"1565":{"name":"Missy","lat":46.878051,"lng":6.963199},"1580":{"name":"Avenches","lat":46.873202,"lng":7.043298},"1584":{"name":"Villars-le-Grand","lat":46.908294,"lng":6.995022},"1585":{"name":"Bellerive VD","lat":46.919738,"lng":7.021923},"1586":{"name":"Vallamand","lat":46.929144,"lng":7.037283},"1587":{"name":"Constantine","lat":46.922461,"lng":7.011147},"1588":{"name":"Cudrefin","lat":46.954867,"lng":7.027384},"1589":{"name":"Chabrey","lat":46.928098,"lng":6.986785},"1595":{"name":"Faoug","lat":46.900666,"lng":7.076067},"1607":{"name":"Palézieux-Village","lat":46.553161,"lng":6.824197},"1608":{"name":"Oron-le-Châtel","lat":46.574272,"lng":6.848936},"1610":{"name":"Châtillens","lat":46.57082,"lng":6.816125},"1612":{"name":"Ecoteaux","lat":46.545733,"lng":6.86271},"1613":{"name":"Maracon","lat":46.557548,"lng":6.882538},"1658":{"name":"La Tine","lat":46.467908,"lng":7.067159},"1659":{"name":"Flendruz","lat":46.48436,"lng":7.18955},"1660":{"name":"Château-d'Oex","lat":46.463967,"lng":7.130955},"1682":{"name":"Dompierre VD","lat":46.709812,"lng":6.882675},"1683":{"name":"Brenles","lat":46.676661,"lng":6.845681},"1787":{"name":"Mur (Vully) VD","lat":46.945663,"lng":7.05811},"1800":{"name":"Vevey","lat":46.393781,"lng":6.942713},"1801":{"name":"Le Mont-Pèlerin","lat":46.491381,"lng":6.823116},"1802":{"name":"Corseaux","lat":46.470547,"lng":6.828134},"1803":{"name":"Chardonne","lat":46.475213,"lng":6.810664},"1804":{"name":"Corsier-sur-Vevey","lat":46.476508,"lng":6.849592},"1805":{"name":"Jongny","lat":46.482645,"lng":6.84708},"1806":{"name":"St-Légier-La Chiésaz","lat":46.471719,"lng":6.876771},"1807":{"name":"Blonay","lat":46.477413,"lng":6.911293},"1808":{"name":"Les Monts-de-Corsier","lat":46.499527,"lng":6.879883},"1809":{"name":"Fenil-sur-Corsier","lat":46.485187,"lng":6.865996},"1811":{"name":"Vevey Services spéciaux","lat":46.522787,"lng":6.898782},"1814":{"name":"La Tour-de-Peilz","lat":46.452734,"lng":6.871523},"1815":{"name":"Clarens","lat":46.447577,"lng":6.896213},"1816":{"name":"Chailly-Montreux","lat":46.452367,"lng":6.889558},"1817":{"name":"Brent","lat":46.455576,"lng":6.902504},"1818":{"name":"Montreux La Redoute","lat":46.55445,"lng":7.37431},"1820":{"name":"Montreux","lat":46.425977,"lng":6.925541},"1822":{"name":"Chernex","lat":46.441221,"lng":6.916816},"1823":{"name":"Glion","lat":46.432164,"lng":6.925556},"1824":{"name":"Caux","lat":46.432161,"lng":6.957611},"1832":{"name":"Chamby","lat":46.459563,"lng":6.917369},"1833":{"name":"Les Avants","lat":46.454732,"lng":6.953068},"1844":{"name":"Villeneuve VD","lat":46.410106,"lng":6.969442},"1845":{"name":"Noville","lat":46.373002,"lng":6.900505},"1846":{"name":"Chessel","lat":46.349422,"lng":6.894359},"1847":{"name":"Rennaz","lat":46.376084,"lng":6.918389},"1852":{"name":"Roche VD","lat":46.360326,"lng":6.931505},"1853":{"name":"Yvorne","lat":46.334874,"lng":6.941904},"1854":{"name":"Leysin","lat":46.343563,"lng":7.012033},"1856":{"name":"Corbeyrier","lat":46.349105,"lng":6.959848},"1860":{"name":"Aigle","lat":46.318568,"lng":6.973286},"1862":{"name":"La Comballaz","lat":46.378275,"lng":7.091244},"1863":{"name":"Le Sépey","lat":46.38065,"lng":7.037538},"1864":{"name":"Vers-l'Eglise","lat":46.355745,"lng":7.110473},"1865":{"name":"Les Diablerets","lat":46.350612,"lng":7.170779},"1866":{"name":"La Forclaz VD","lat":46.342726,"lng":7.063485},"1867":{"name":"Ollon VD","lat":46.2925,"lng":7.00518},"1880":{"name":"Bex","lat":46.254079,"lng":7.068059},"1882":{"name":"Gryon","lat":46.281934,"lng":7.085787},"1884":{"name":"Arveyes","lat":46.293573,"lng":7.047537},"1885":{"name":"Chesières","lat":46.30084,"lng":7.04284},"1892":{"name":"Lavey-les-Bains","lat":46.209205,"lng":7.02961}};
+const VAUD_CENTER = [46.594, 6.630];
+const STORAGE_KEY = "planning-tournees-vaud-v1";
+
+/* ===== State ===== */
+let nextDayId = 1;
+function defaultVehicleColor(i){
+  if (i === 0) return "#E0622C";
+  if (i === 1) return "#2457A8";
+  const hue = (i * 97 + 40) % 360; // pas different de celui des jours pour eviter les collisions visuelles
+  return "hsl(" + hue + ",68%,42%)";
+}
+function freshDay(label, nVehicles){
+  const n = nVehicles || 2;
+  return { id: "day-" + (nextDayId++), label: label, texts: new Array(n).fill("") };
+}
+let state = {
+  vehicles: [
+    { label: "Véhicule 1", color: "#E0622C" },
+    { label: "Véhicule 2", color: "#2457A8" }
+  ],
+  days: [ freshDay("Jour 1", 2) ],
+  selectedDayId: null
+};
+state.selectedDayId = state.days[0].id;
+
+let map, markersLayer;
+let saveTimer = null;
+
+/* ===== Parsing ===== */
+function parseNpaList(text){
+  const tokens = (text || "").split(/[^0-9]+/).filter(Boolean);
+  const recognized = [];
+  const unrecognized = [];
+  const seen = new Set();
+  for (const tok of tokens){
+    if (seen.has(tok)) continue;
+    seen.add(tok);
+    if (NPA_DB[tok]) recognized.push({ code: tok, name: NPA_DB[tok].name, lat: NPA_DB[tok].lat, lng: NPA_DB[tok].lng });
+    else unrecognized.push(tok);
+  }
+  return { recognized, unrecognized };
+}
+
+function getDay(id){ return state.days.find(d => d.id === id); }
+
+/* Couleur stable par jour (basée sur l'id de création, donc ne change pas si un autre jour est supprimé) */
+function dayColorFor(day){
+  const n = parseInt((day.id || "day-0").split("-")[1] || "0", 10);
+  const hue = (n * 137.508) % 360; // angle d'or : bonne répartition même quand on ajoute des jours
+  return "hsl(" + hue.toFixed(1) + ",62%,46%)";
+}
+
+function getActivePoints(){
+  const daysToShow = state.selectedDayId === "ALL" ? state.days : state.days.filter(d => d.id === state.selectedDayId);
+  const points = [];
+  daysToShow.forEach(day => {
+    const dColor = dayColorFor(day);
+    state.vehicles.forEach((veh, vi) => {
+      const { recognized } = parseNpaList(day.texts[vi]);
+      recognized.forEach(r => {
+        points.push({ code:r.code, name:r.name, lat:r.lat, lng:r.lng,
+          vehicleColor:veh.color, vehicleLabel:veh.label, vIndex:vi,
+          dayColor:dColor, dayLabel:day.label });
+      });
+    });
+  });
+  return points;
+}
+
+/* ===== Storage (best effort — only available inside the Claude.ai artifact viewer) ===== */
+async function saveState(){
+  try {
+    if (window.storage && window.storage.set){
+      await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+    }
+  } catch(e){ /* stockage indisponible hors de Claude.ai : on continue en mémoire */ }
+}
+function queueSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveState, 500);
+}
+async function loadState(){
+  try {
+    if (window.storage && window.storage.get){
+      const res = await window.storage.get(STORAGE_KEY, false);
+      if (res && res.value){
+        const loaded = JSON.parse(res.value);
+        if (loaded && Array.isArray(loaded.days) && loaded.days.length){
+          state = loaded;
+          const maxId = Math.max(0, ...state.days.map(d => parseInt((d.id||"day-0").split("-")[1] || "0", 10)));
+          nextDayId = maxId + 1;
+        }
+      }
+    }
+  } catch(e) { /* pas d'état sauvegardé, ou stockage indisponible : on démarre à vide */ }
+}
+
+/* ===== Rendering ===== */
+function el(tag, attrs, ...children){
+  const node = document.createElement(tag);
+  if (attrs) for (const k in attrs){
+    if (k === "class") node.className = attrs[k];
+    else if (k === "html") node.innerHTML = attrs[k];
+    else if (k.startsWith("on") && typeof attrs[k] === "function") node.addEventListener(k.slice(2), attrs[k]);
+    else node.setAttribute(k, attrs[k]);
+  }
+  children.flat().forEach(c => { if (c != null) node.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+  return node;
+}
+
+function renderVehicleConfig(){
+  const wrap = document.getElementById("vehicleConfig");
+  wrap.innerHTML = "";
+  state.vehicles.forEach((veh, vi) => {
+    const colorInput = el("input", { type:"color", value: veh.color, class:"color-pick", oninput:(e)=>{ veh.color = e.target.value; queueSave(); renderAll(); } });
+    const labelInput = el("input", { type:"text", value: veh.label, class:"vehicle-label-input", maxlength:"24",
+      oninput:(e)=>{ veh.label = e.target.value || ("Véhicule " + (vi+1)); queueSave(); renderTabsAndPanels(); } });
+    const removeBtn = el("button", { type:"button", class:"vehicle-remove", title:"Supprimer ce véhicule",
+      onclick:()=>removeVehicle(vi) }, "×");
+    wrap.appendChild(el("div", { class:"vehicle-chip" }, colorInput, labelInput, removeBtn));
+  });
+  wrap.appendChild(el("button", { type:"button", class:"vehicle-add", title:"Ajouter un véhicule", onclick: addVehicle }, "+ Véhicule"));
+}
+
+function renderTabs(){
+  const bar = document.getElementById("dayTabs");
+  bar.innerHTML = "";
+  state.days.forEach((day, idx) => {
+    const active = state.selectedDayId === day.id;
+    const dayDot = el("span", { class:"tab-daydot", style:`background:${dayColorFor(day)}` });
+    const num = el("span", { class:"tab-num" }, String(idx+1).padStart(2,"0"));
+    const labelInput = el("input", { type:"text", value: day.label, class:"tab-label-input", maxlength:"20",
+      oninput:(e)=>{ day.label = e.target.value || ("Jour " + (idx+1)); queueSave(); },
+      onclick:(e)=>{ e.stopPropagation(); } });
+    const removeBtn = el("button", { type:"button", class:"tab-remove", title:"Supprimer ce jour",
+      onclick:(e)=>{ e.stopPropagation(); removeDay(day.id); } }, "×");
+    const tab = el("div", { class:"day-tab" + (active ? " active" : ""), tabindex:"0", role:"button",
+      onclick:()=>selectDay(day.id),
+      onkeydown:(e)=>{ if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectDay(day.id); } } },
+      dayDot, num, labelInput, removeBtn);
+    bar.appendChild(tab);
+  });
+  const allTab = el("div", { class:"day-tab all-tab" + (state.selectedDayId === "ALL" ? " active" : ""), tabindex:"0", role:"button",
+    onclick: ()=>selectDay("ALL"),
+    onkeydown:(e)=>{ if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectDay("ALL"); } } }, "VUE D'ENSEMBLE");
+  const holder = document.getElementById("allTabHolder");
+  holder.innerHTML = "";
+  holder.appendChild(allTab);
+}
+
+function renderPanels(){
+  const holder = document.getElementById("inputPanels");
+  holder.innerHTML = "";
+  if (state.selectedDayId === "ALL"){
+    holder.appendChild(el("div", { class:"all-notice" },
+      "Vue d'ensemble : tous les jours combinés, en lecture seule. Sélectionne un jour pour modifier ses codes postaux."));
+    state.vehicles.forEach((veh, vi) => {
+      let totalPts = 0;
+      state.days.forEach(d => { totalPts += parseNpaList(d.texts[vi]).recognized.length; });
+      holder.appendChild(el("div", { class:"vehicle-card readonly", style:`--vc:${veh.color}` },
+        el("div", { class:"vehicle-card-head" }, el("span",{class:"dot"}), veh.label),
+        el("div", { class:"vehicle-summary" }, totalPts + " point" + (totalPts>1?"s":"") + " sur " + state.days.length + " jour" + (state.days.length>1?"s":""))
+      ));
+    });
+    return;
+  }
+  const day = getDay(state.selectedDayId);
+  if (!day) return;
+  state.vehicles.forEach((veh, vi) => {
+    const { recognized, unrecognized } = parseNpaList(day.texts[vi]);
+    const textarea = el("textarea", { class:"npa-input", placeholder:"1000\n1400, 1800\n1820 1260 1110", rows:"6",
+      oninput:(e)=>{ day.texts[vi] = e.target.value; queueSave(); renderStatsFor(vi, day); renderMap(); } });
+    textarea.value = day.texts[vi] || "";
+    const stats = el("div", { class:"vehicle-summary", id:"stats-" + vi });
+    const card = el("div", { class:"vehicle-card", style:`--vc:${veh.color};--day-color:${dayColorFor(day)}` },
+      el("div", { class:"vehicle-card-head" }, el("span",{class:"dot"}), veh.label),
+      textarea,
+      stats
+    );
+    holder.appendChild(card);
+    renderStatsInto(stats, recognized, unrecognized);
+  });
+}
+
+function renderStatsFor(vi, day){
+  const { recognized, unrecognized } = parseNpaList(day.texts[vi]);
+  const stats = document.getElementById("stats-" + vi);
+  if (stats) renderStatsInto(stats, recognized, unrecognized);
+}
+
+function renderStatsInto(node, recognized, unrecognized){
+  node.innerHTML = "";
+  node.appendChild(el("span", { class:"count-ok" }, recognized.length + " point" + (recognized.length !== 1 ? "s" : "") + " reconnu" + (recognized.length !== 1 ? "s" : "")));
+  if (unrecognized.length){
+    node.appendChild(el("span", { class:"count-warn" }, " · non reconnu" + (unrecognized.length>1?"s":"") + " : " + unrecognized.join(", ")));
+  }
+}
+
+function renderHeaderStats(){
+  document.getElementById("headerStats").textContent =
+    state.days.length + " jour" + (state.days.length>1?"s":"") + " planifié" + (state.days.length>1?"s":"") + " · " + Object.keys(NPA_DB).length + " NPA du canton reconnus";
+}
+
+function renderMap(){
+  if (!map) return;
+  markersLayer.clearLayers();
+  const points = getActivePoints();
+
+  /* Regroupe les points qui tombent sur le même NPA pour les disposer en petit cercle
+     autour du centroïde, plutôt que de les empiler exactement au même endroit. */
+  const groups = new Map();
+  points.forEach(p => {
+    if (!groups.has(p.code)) groups.set(p.code, []);
+    groups.get(p.code).push(p);
+  });
+
+  groups.forEach(group => {
+    const k = group.length;
+    const radius = k === 1 ? 0 : 0.0006 + 0.00022 * k;
+    const latCorrection = Math.cos(group[0].lat * Math.PI / 180) || 1;
+    group.forEach((p, i) => {
+      let lat = p.lat, lng = p.lng;
+      if (k > 1){
+        const angle = (2 * Math.PI * i / k) - Math.PI / 2;
+        lat += radius * Math.sin(angle);
+        lng += (radius * Math.cos(angle)) / latCorrection;
+      }
+      const marker = L.circleMarker([lat, lng], {
+        radius: 10, weight: 3, color: p.dayColor, fillColor: p.vehicleColor, fillOpacity: 0.92
+      });
+      marker.bindPopup(
+        "<b>" + p.code + " – " + p.name + "</b><br>" +
+        "<span style='color:" + p.vehicleColor + "'>●</span> " + p.vehicleLabel +
+        " &nbsp;·&nbsp; <span style='color:" + p.dayColor + "'>◉</span> " + p.dayLabel
+      );
+      marker.addTo(markersLayer);
+    });
+  });
+
+  if (points.length){
+    const bounds = L.latLngBounds(points.map(p => [p.lat, p.lng]));
+    map.fitBounds(bounds, { padding: [40,40], maxZoom: 13 });
+  } else {
+    map.setView(VAUD_CENTER, 9);
+  }
+  const footer = document.getElementById("footerStats");
+  if (footer){
+    footer.textContent = points.length + " point" + (points.length !== 1 ? "s" : "") + " affiché" + (points.length !== 1 ? "s" : "") +
+      " sur la carte · intérieur = véhicule, contour = jour";
+  }
+}
+
+function renderTabsAndPanels(){
+  renderTabs();
+  renderPanels();
+}
+
+function renderAll(){
+  renderVehicleConfig();
+  renderTabsAndPanels();
+  renderHeaderStats();
+  renderMap();
+}
+
+/* ===== Actions ===== */
+function addVehicle(){
+  const i = state.vehicles.length;
+  state.vehicles.push({ label: "Véhicule " + (i+1), color: defaultVehicleColor(i) });
+  state.days.forEach(d => { d.texts.push(""); });
+  queueSave();
+  renderAll();
+}
+function removeVehicle(index){
+  if (state.vehicles.length <= 1){
+    alert("Il doit rester au moins un véhicule.");
+    return;
+  }
+  const label = state.vehicles[index].label;
+  if (!confirm("Supprimer « " + label + " » ? Les codes postaux saisis pour ce véhicule seront perdus.")) return;
+  state.vehicles.splice(index, 1);
+  state.days.forEach(d => { d.texts.splice(index, 1); });
+  queueSave();
+  renderAll();
+}
+function selectDay(id){
+  state.selectedDayId = id;
+  renderTabsAndPanels();
+  renderMap();
+}
+function addDay(){
+  const d = freshDay("Jour " + (state.days.length + 1), state.vehicles.length);
+  state.days.push(d);
+  state.selectedDayId = d.id;
+  queueSave();
+  renderTabsAndPanels();
+  renderHeaderStats();
+  renderMap();
+}
+function removeDay(id){
+  if (state.days.length <= 1){
+    alert("Il doit rester au moins un jour.");
+    return;
+  }
+  const day = getDay(id);
+  if (!confirm("Supprimer « " + day.label + " » et ses codes postaux ?")) return;
+  state.days = state.days.filter(d => d.id !== id);
+  if (state.selectedDayId === id){
+    state.selectedDayId = state.days[0].id;
+  }
+  queueSave();
+  renderTabsAndPanels();
+  renderHeaderStats();
+  renderMap();
+}
+function resetAll(){
+  if (!confirm("Réinitialiser tout le planning (véhicules, jours, codes postaux) ?")) return;
+  nextDayId = 1;
+  state = {
+    vehicles: [ { label:"Véhicule 1", color:"#E0622C" }, { label:"Véhicule 2", color:"#2457A8" } ],
+    days: [ freshDay("Jour 1", 2) ],
+    selectedDayId: null
+  };
+  state.selectedDayId = state.days[0].id;
+  queueSave();
+  renderAll();
+}
+
+/* ===== Init ===== */
+async function init(){
+  map = L.map("map", { zoomControl: true }).setView(VAUD_CENTER, 9);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  }).addTo(map);
+  markersLayer = L.layerGroup().addTo(map);
+
+  await loadState();
+  document.getElementById("resetBtn").addEventListener("click", resetAll);
+  document.getElementById("addDayBtn").addEventListener("click", addDay);
+  renderAll();
+}
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
