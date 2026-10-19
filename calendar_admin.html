@@ -23,6 +23,9 @@
     --neige-bg:        #e0f2fe;
     --neige-border:    #0ea5e9;
     --neige-text:      #0369a1;
+    --sortie-bg:       #fef3c7;
+    --sortie-border:   #f59e0b;
+    --sortie-text:     #92400e;
     --header-bg:    #1a2332;
     --header-fg:    #ffffff;
     --accent:       #3b82f6;
@@ -85,6 +88,7 @@
   .legend-dot.wc       { background:var(--wc-border); }
   .legend-dot.balayage { background:var(--balayage-border); }
   .legend-dot.neige    { background:var(--neige-border); }
+  .legend-dot.sortie   { background:var(--sortie-border); }
   .hint { font-size:11px; color:var(--muted); font-style:italic; }
 
   .btn-stats {
@@ -162,6 +166,14 @@
   .piquet-type  { font-size:9px; font-weight:700; text-transform:uppercase; opacity:0.7; margin-bottom:1px; }
   .piquet-role  { font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
+  .sortie-badge {
+    display:inline-block; margin-left:3px; padding:0 4px;
+    border-radius:6px; background:var(--sortie-bg); color:var(--sortie-text);
+    border:1px solid var(--sortie-border);
+    font-family:'DM Mono',monospace; font-size:9px; font-weight:600;
+    line-height:1.3; vertical-align:1px;
+  }
+
   /* ── Overlays ── */
   .overlay {
     display:none; position:fixed; inset:0;
@@ -175,11 +187,11 @@
   .modal {
     background:var(--surface); border-radius:14px;
     box-shadow:0 20px 60px rgba(0,0,0,0.25);
-    width:440px; max-width:100%; max-height:90vh;
+    width:480px; max-width:100%; max-height:90vh;
     display:flex; flex-direction:column;
     animation:slideUp 0.2s ease;
   }
-  .modal.wide { width:680px; }
+  .modal.wide { width:760px; }
   @keyframes slideUp { from { opacity:0; transform:translateY(16px); } }
 
   .modal-body {
@@ -229,8 +241,12 @@
   .form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
   /* ── Suppléants dynamiques ── */
+  .supplant-block {
+    border:1px solid var(--border); border-radius:9px;
+    padding:6px; margin-bottom:8px; background:#fafbfc;
+  }
   .supplant-row {
-    display:flex; gap:6px; align-items:center; margin-bottom:6px;
+    display:flex; gap:6px; align-items:center;
   }
   .supplant-row .sel-input {
     flex:1; width:auto; min-width:0;
@@ -252,6 +268,41 @@
     transition:all 0.15s; margin-top:2px;
   }
   .btn-add-sup:hover { border-color:var(--accent); color:var(--accent); background:rgba(59,130,246,0.04); }
+
+  /* ── Sorties par jour (suppléants) ── */
+  .sorties-grid { margin-top:6px; }
+  .sorties-head {
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:10px; font-weight:700; color:var(--muted);
+    text-transform:uppercase; letter-spacing:0.5px; margin:0 2px 4px;
+  }
+  .sorties-head .sorties-total { font-family:'DM Mono',monospace; color:var(--sortie-text); text-transform:none; }
+  .sorties-cells {
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(58px, 1fr));
+    gap:4px; max-height:150px; overflow-y:auto;
+  }
+  .sortie-cell {
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:6px; padding:3px 2px;
+  }
+  .sortie-cell.we { background:#f3f5f9; }
+  .sortie-cell span {
+    font-family:'DM Mono',monospace; font-size:10px; color:var(--muted);
+    white-space:nowrap;
+  }
+  .sortie-cell input {
+    width:42px; text-align:center; padding:2px;
+    border:1px solid var(--border); border-radius:4px;
+    font-family:'DM Mono',monospace; font-size:13px; color:var(--text);
+    background:var(--surface);
+  }
+  .sortie-cell input:focus { outline:none; border-color:var(--accent); }
+  .sortie-cell input.has {
+    border-color:var(--sortie-border); background:var(--sortie-bg);
+    color:var(--sortie-text); font-weight:600;
+  }
+  .sorties-msg { font-size:12px; color:var(--muted); font-style:italic; padding:2px 4px; }
 
   /* ── Modal footer ── */
   .modal-footer {
@@ -328,11 +379,13 @@
     font-weight:700; background:#f0f2f5;
     border-top:2px solid var(--border); border-bottom:none;
   }
+  .stats-table .col-sortie { border-left:1px solid var(--border); }
 
   .num { font-family:'DM Mono',monospace; font-weight:600; font-size:13px; }
   .num.tit { color:var(--wc-text); }
   .num.sup { color:var(--neige-text); }
   .num.tot { color:var(--text); }
+  .num.sor { color:var(--sortie-text); }
 
   /* Bar mini inline */
   .bar-wrap { display:flex; gap:2px; align-items:center; margin-top:2px; }
@@ -384,6 +437,7 @@
       <div class="legend-item"><div class="legend-dot wc"></div>WC</div>
       <div class="legend-item"><div class="legend-dot balayage"></div>Balayage</div>
       <div class="legend-item"><div class="legend-dot neige"></div>Neige</div>
+      <div class="legend-item"><div class="legend-dot sortie"></div>Sorties suppléant (2×)</div>
     </div>
     <div class="hint">✏️ Cliquez sur un piquet pour modifier · sur un jour pour créer</div>
   </div>
@@ -442,7 +496,7 @@
       <div class="form-row">
         <label>
           Suppléants
-          <span style="font-weight:400;text-transform:none;letter-spacing:0">(optionnel)</span>
+          <span style="font-weight:400;text-transform:none;letter-spacing:0">(optionnel · nombre de sorties par jour)</span>
         </label>
         <div id="supplants-container"></div>
         <button type="button" class="btn-add-sup" onclick="addSupplantRow()">＋ Ajouter un suppléant</button>
@@ -494,12 +548,13 @@
               <th>Employé</th>
               <th>Jours titulaire</th>
               <th>Jours suppléant</th>
-              <th>Total</th>
+              <th>Total jours</th>
+              <th class="col-sortie">Sorties suppl.</th>
             </tr>
           </thead>
           <tbody id="stats-body">
             <tr>
-              <td colspan="4" class="stats-empty">Sélectionnez une période et cliquez sur « Calculer ».</td>
+              <td colspan="5" class="stats-empty">Sélectionnez une période et cliquez sur « Calculer ».</td>
             </tr>
           </tbody>
           <tfoot id="stats-foot"></tfoot>
@@ -519,15 +574,22 @@ const API_PLANNING  = 'https://n8n-cbc.ch/webhook/planning';
 const API_EMPLOYEES = 'https://n8n-cbc.ch/webhook/employees';
 const API_SAVE      = 'https://n8n-cbc.ch/webhook/planning-save';
 const API_DELETE    = 'https://n8n-cbc.ch/webhook/planning-delete';
+const API_SORTIES   = 'https://n8n-cbc.ch/webhook/planning-sorties';
 // ────────────────────────────────────────────────────────
 
 const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin',
                    'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const DOW_FR    = ['Di','Lu','Ma','Me','Je','Ve','Sa'];
 
 let currentDate  = new Date();
 let planningData = [];
 let employees    = [];
 let editingId    = null;
+
+// Sorties des suppléants
+let sortiesData  = [];        // [{ CE_Planning, CE_Employe, date, nb }]
+let sortiesIndex = new Map(); // "planning|employe|date" → nb
+let editSorties  = {};        // en cours d'édition : { CP: { 'YYYY-MM-DD': nb } }
 
 // ── Init ──
 async function init() {
@@ -538,7 +600,7 @@ init();
 // ── Fetch ──
 async function fetchPlanning() {
   try {
-    const res = await fetch(API_PLANNING);
+    const [res] = await Promise.all([fetch(API_PLANNING), fetchSorties()]);
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     planningData = Array.isArray(json) ? json : (json.data || []);
@@ -550,6 +612,33 @@ async function fetchPlanning() {
         <div>Erreur : ${err.message}</div>
       </div>`;
   }
+}
+
+/** Charge les sorties. Non bloquant : si le webhook n'existe pas encore, la page fonctionne quand même. */
+async function fetchSorties() {
+  try {
+    const res = await fetch(API_SORTIES);
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    const arr  = Array.isArray(json) ? json : (json.data || []);
+    sortiesData = arr
+      .filter(s => s && s.CE_Planning != null && s.CE_Employe != null && s.date_sortie)
+      .map(s => ({
+        CE_Planning: Number(s.CE_Planning),
+        CE_Employe:  Number(s.CE_Employe),
+        date:        String(s.date_sortie).substring(0,10),
+        nb:          Number(s.nb_sorties) || 0
+      }))
+      .filter(s => s.nb > 0);
+  } catch(err) {
+    console.warn('Sorties non chargées', err);
+    sortiesData = [];
+  }
+  sortiesIndex = new Map(sortiesData.map(s => [`${s.CE_Planning}|${s.CE_Employe}|${s.date}`, s.nb]));
+}
+
+function getSortie(planningId, cp, dateStr) {
+  return sortiesIndex.get(`${Number(planningId)}|${Number(cp)}|${dateStr}`) || 0;
 }
 
 async function fetchEmployees() {
@@ -568,6 +657,28 @@ function populateTitulaireDropdown() {
   document.getElementById('f-titulaire').innerHTML =
     '<option value="">— Sélectionner un employé —</option>' +
     employees.map(e => `<option value="${e.CP}">${e.prenom} ${e.nom}</option>`).join('');
+}
+
+// ── Dates ──
+function pad(n){ return String(n).padStart(2,'0'); }
+
+/** Liste des jours 'YYYY-MM-DD' entre deux dates incluses (calcul en UTC, sans décalage horaire). */
+function dateRange(from, to) {
+  const re = /^\d{4}-\d{2}-\d{2}$/;
+  if(!re.test(from || '') || !re.test(to || '') || to < from) return [];
+  const [y1,m1,d1] = from.split('-').map(Number);
+  const [y2,m2,d2] = to.split('-').map(Number);
+  const end = Date.UTC(y2, m2-1, d2);
+  const out = [];
+  for(let t = Date.UTC(y1, m1-1, d1); t <= end && out.length < 400; t += 86400000) {
+    out.push(new Date(t).toISOString().substring(0,10));
+  }
+  return out;
+}
+
+function dowOf(dateStr) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  return new Date(Date.UTC(y, m-1, d)).getUTCDay();
 }
 
 // ── Suppléants ──
@@ -601,14 +712,76 @@ function makeSupSelectOptions(selectedCP = '') {
 
 function addSupplantRow(selectedCP = '') {
   const container = document.getElementById('supplants-container');
-  const row = document.createElement('div');
-  row.className = 'supplant-row';
-  row.innerHTML = `
-    <select class="sel-input supplant-sel">${makeSupSelectOptions(selectedCP)}</select>
-    <button type="button" class="btn-remove-sup" onclick="this.closest('.supplant-row').remove()" title="Retirer">✕</button>
+  const block = document.createElement('div');
+  block.className = 'supplant-block';
+  block.innerHTML = `
+    <div class="supplant-row">
+      <select class="sel-input supplant-sel">${makeSupSelectOptions(selectedCP)}</select>
+      <button type="button" class="btn-remove-sup" onclick="this.closest('.supplant-block').remove()" title="Retirer">✕</button>
+    </div>
+    <div class="sorties-grid"></div>
   `;
-  container.appendChild(row);
+  block.querySelector('.supplant-sel').addEventListener('change', () => renderSortiesGrid(block));
+  container.appendChild(block);
+  renderSortiesGrid(block);
 }
+
+/** Grille "nombre de sorties par jour" sous un suppléant, sur la période du piquet. */
+function renderSortiesGrid(block) {
+  const cp   = block.querySelector('.supplant-sel').value;
+  const grid = block.querySelector('.sorties-grid');
+
+  if(!cp) { grid.innerHTML = ''; return; }
+
+  const days = dateRange(document.getElementById('f-debut').value,
+                         document.getElementById('f-fin').value);
+  if(!days.length) {
+    grid.innerHTML = '<div class="sorties-msg">Renseignez des dates valides pour saisir les sorties.</div>';
+    return;
+  }
+
+  const vals  = editSorties[cp] || {};
+  const total = days.reduce((s, d) => s + (vals[d] || 0), 0);
+
+  grid.innerHTML = `
+    <div class="sorties-head">
+      <span>Sorties par jour</span>
+      <span class="sorties-total">Total : ${total}</span>
+    </div>
+    <div class="sorties-cells">
+      ${days.map(d => {
+        const dow = dowOf(d);
+        const v   = vals[d] || 0;
+        return `<label class="sortie-cell ${dow === 0 || dow === 6 ? 'we' : ''}">
+          <span>${DOW_FR[dow]} ${d.substring(8,10)}.${d.substring(5,7)}</span>
+          <input type="number" min="0" max="99" step="1" inputmode="numeric"
+                 data-date="${d}" value="${v > 0 ? v : ''}" placeholder="0"
+                 class="${v > 0 ? 'has' : ''}">
+        </label>`;
+      }).join('')}
+    </div>`;
+
+  grid.oninput = e => {
+    const inp = e.target;
+    if(!inp.matches('input[data-date]')) return;
+    let n = parseInt(inp.value, 10);
+    if(!Number.isInteger(n) || n < 0) n = 0;
+    if(n > 99) { n = 99; inp.value = 99; }
+    if(!editSorties[cp]) editSorties[cp] = {};
+    if(n > 0) editSorties[cp][inp.dataset.date] = n;
+    else      delete editSorties[cp][inp.dataset.date];
+    inp.classList.toggle('has', n > 0);
+    const cur = editSorties[cp];
+    grid.querySelector('.sorties-total').textContent =
+      'Total : ' + days.reduce((s, d) => s + (cur[d] || 0), 0);
+  };
+}
+
+function renderAllSortiesGrids() {
+  document.querySelectorAll('#supplants-container .supplant-block').forEach(renderSortiesGrid);
+}
+document.getElementById('f-debut').addEventListener('change', renderAllSortiesGrids);
+document.getElementById('f-fin').addEventListener('change', renderAllSortiesGrids);
 
 function clearSupplants() {
   document.getElementById('supplants-container').innerHTML = '';
@@ -621,8 +794,6 @@ function getSelectedSupplants() {
 }
 
 // ── Calendar render ──
-function pad(n){ return String(n).padStart(2,'0'); }
-
 function getPiquets(dateStr) {
   return planningData.filter(p => {
     if(!p.debut || !p.fin) return false;
@@ -664,7 +835,12 @@ function renderCalendar() {
       if(tit) html += `<div class="piquet-role">T: ${tit}</div>`;
       sups.forEach(s => {
         const sn = [s.prenom, s.nom].filter(Boolean).join(' ').trim();
-        if(sn) html += `<div class="piquet-role">S: ${sn}</div>`;
+        if(!sn) return;
+        const n = s.CP != null ? getSortie(p.id_planning, s.CP, dateStr) : 0;
+        const badge = n > 0
+          ? ` <span class="sortie-badge" title="${n} sortie${n>1?'s':''}">${n}×</span>`
+          : '';
+        html += `<div class="piquet-role">S: ${sn}${badge}</div>`;
       });
       html += `</div>`;
     });
@@ -677,7 +853,8 @@ function renderCalendar() {
 
 // ── Modal piquet ──
 function openCreate(dateStr) {
-  editingId = null;
+  editingId   = null;
+  editSorties = {};
   document.getElementById('modal-title').textContent = '➕ Nouveau piquet';
   document.getElementById('btn-delete').style.display = 'none';
   document.getElementById('f-type').value    = 'WC';
@@ -702,6 +879,12 @@ function openEdit(event, id) {
 
   const tit = employees.find(e => e.nom === p.nom_titulaire && e.prenom === p.prenom_titulaire);
   document.getElementById('f-titulaire').value = tit ? tit.CP : '';
+
+  // Sorties déjà enregistrées pour ce piquet
+  editSorties = {};
+  sortiesData
+    .filter(s => s.CE_Planning == id)
+    .forEach(s => { (editSorties[s.CE_Employe] ||= {})[s.date] = s.nb; });
 
   clearSupplants();
   getSupplants(p).forEach(s => addSupplantRow(s.CP || ''));
@@ -732,6 +915,18 @@ async function savePiquet() {
     alert('La date de fin ne peut pas être avant la date de début.'); return;
   }
 
+  const titCP    = parseInt(tit);
+  const supsUniq = [...new Set(sups.map(cp => parseInt(cp)))].filter(cp => cp !== titCP);
+
+  // Sorties : uniquement suppléants retenus, jours dans la période, valeur > 0
+  const days    = new Set(dateRange(debut, fin));
+  const sorties = [];
+  supsUniq.forEach(cp => {
+    Object.entries(editSorties[cp] || {}).forEach(([date, nb]) => {
+      if(days.has(date) && nb > 0) sorties.push({ CE_Employe: cp, date, nb_sorties: nb });
+    });
+  });
+
   const btn = document.getElementById('btn-save');
   btn.disabled = true; btn.textContent = '…';
 
@@ -740,9 +935,9 @@ async function savePiquet() {
       id:          editingId || undefined,
       debut, fin,
       type_piquet: type,
-      CE_Employe:  parseInt(tit),
-      // Tableau des suppléants — nécessite mise à jour du workflow n8n
-      supplants:   sups.map(cp => parseInt(cp))
+      CE_Employe:  titCP,
+      supplants:   supsUniq,
+      sorties
     };
 
     const res = await fetch(API_SAVE, {
@@ -787,7 +982,7 @@ function openStats() {
   document.getElementById('s-to').value   = today.toISOString().substring(0,10);
   document.getElementById('s-type').value = 'all';
   document.getElementById('stats-body').innerHTML =
-    '<tr><td colspan="4" class="stats-empty">Sélectionnez une période et cliquez sur « Calculer ».</td></tr>';
+    '<tr><td colspan="5" class="stats-empty">Sélectionnez une période et cliquez sur « Calculer ».</td></tr>';
   document.getElementById('stats-foot').innerHTML = '';
   document.getElementById('overlay-stats').classList.add('open');
 }
@@ -815,8 +1010,8 @@ function renderStats() {
   if(!from || !to) { alert('Veuillez saisir une période.'); return; }
   if(to < from)    { alert('La date de fin doit être après la date de début.'); return; }
 
-  // Calcul des jours par employé
-  const statsMap = {}; // "Prenom Nom" → { name, tit, sup }
+  const statsMap = {}; // "Prenom Nom" → { name, tit, sup, sor }
+  const entry = name => (statsMap[name] ||= { name, tit: 0, sup: 0, sor: 0 });
 
   planningData.forEach(p => {
     if(!p.debut || !p.fin) return;
@@ -825,37 +1020,44 @@ function renderStats() {
     const days = countOverlapDays(p.debut.substring(0,10), p.fin.substring(0,10), from, to);
     if(days <= 0) return;
 
-    // Titulaire
     const titName = [p.prenom_titulaire, p.nom_titulaire].filter(Boolean).join(' ').trim();
-    if(titName) {
-      if(!statsMap[titName]) statsMap[titName] = { name: titName, tit: 0, sup: 0 };
-      statsMap[titName].tit += days;
-    }
+    if(titName) entry(titName).tit += days;
 
-    // Suppléants (supporte les deux formats)
     getSupplants(p).forEach(s => {
       const sName = [s.prenom, s.nom].filter(Boolean).join(' ').trim();
-      if(!sName) return;
-      if(!statsMap[sName]) statsMap[sName] = { name: sName, tit: 0, sup: 0 };
-      statsMap[sName].sup += days;
+      if(sName) entry(sName).sup += days;
     });
   });
 
+  // Sorties des suppléants sur la période
+  sortiesData.forEach(s => {
+    if(s.date < from || s.date > to) return;
+    const p = planningData.find(x => x.id_planning == s.CE_Planning);
+    if(!p) return;
+    if(typeFilter !== 'all' && p.type_piquet !== typeFilter) return;
+
+    const sp = getSupplants(p).find(x => String(x.CP) === String(s.CE_Employe));
+    const e  = employees.find(x => String(x.CP) === String(s.CE_Employe));
+    const name = sp ? [sp.prenom, sp.nom].filter(Boolean).join(' ').trim()
+               : e  ? [e.prenom,  e.nom ].filter(Boolean).join(' ').trim()
+               : '';
+    if(name) entry(name).sor += s.nb;
+  });
+
   const rows = Object.values(statsMap)
-    .filter(r => r.tit > 0 || r.sup > 0)
-    .sort((a,b) => (b.tit + b.sup) - (a.tit + a.sup));
+    .filter(r => r.tit > 0 || r.sup > 0 || r.sor > 0)
+    .sort((a,b) => (b.tit + b.sup) - (a.tit + a.sup) || b.sor - a.sor);
 
   const tbody = document.getElementById('stats-body');
   const tfoot = document.getElementById('stats-foot');
 
   if(rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="stats-empty">Aucun piquet trouvé sur cette période.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="stats-empty">Aucun piquet trouvé sur cette période.</td></tr>';
     tfoot.innerHTML = '';
     return;
   }
 
-  // Max total pour les barres proportionnelles
-  const maxTotal = Math.max(...rows.map(r => r.tit + r.sup));
+  const maxTotal = Math.max(1, ...rows.map(r => r.tit + r.sup));
 
   tbody.innerHTML = rows.map(r => {
     const total   = r.tit + r.sup;
@@ -874,17 +1076,20 @@ function renderStats() {
       <td><span class="num tit">${r.tit}</span></td>
       <td><span class="num sup">${r.sup}</span></td>
       <td><span class="num tot">${total}</span></td>
+      <td class="col-sortie"><span class="num sor">${r.sor}</span></td>
     </tr>`;
   }).join('');
 
   const totTit = rows.reduce((s,r) => s + r.tit, 0);
   const totSup = rows.reduce((s,r) => s + r.sup, 0);
+  const totSor = rows.reduce((s,r) => s + r.sor, 0);
   tfoot.innerHTML = `
     <tr>
       <td>Total (${rows.length} employé${rows.length>1?'s':''})</td>
       <td><span class="num tit">${totTit}</span></td>
       <td><span class="num sup">${totSup}</span></td>
       <td><span class="num tot">${totTit + totSup}</span></td>
+      <td class="col-sortie"><span class="num sor">${totSor}</span></td>
     </tr>`;
 }
 
