@@ -29,6 +29,18 @@
       font-weight: bold;
       text-align: center;
     }
+    #warning {
+      display: none;
+      margin-top: 16px;
+      padding: 12px 16px;
+      max-width: 420px;
+      border-radius: 8px;
+      background-color: #fff3e0;
+      border: 1px solid #ef6c00;
+      color: #e65100;
+      font-size: 1rem;
+      text-align: center;
+    }
     #countdown { margin-top: 10px; font-size: 0.95rem; color: #777; }
     .ok    { color: #2e7d32; }
     .error { color: #c62828; }
@@ -42,6 +54,7 @@
   <p id="employeeText"></p>
   <p id="vehiculeText"></p>
   <p id="status">Chargement en cours...</p>
+  <p id="warning"></p>
   <p id="countdown"></p>
 
   <script>
@@ -59,8 +72,11 @@
       let   vehicule_id  = params.get("vehicule_id") || null;
       // Mode GPS auto : ?gps=1 (sans QR) → détection automatique du véhicule
       const autoDetect   = params.get("gps") === "1" && !qr;
+      // Vrai si aucun véhicule n'a été trouvé et que le QR de secours (133) est utilisé
+      let   isFallback   = false;
 
       const statusElement    = document.getElementById("status");
+      const warningElement   = document.getElementById("warning");
       const qrElement        = document.getElementById("qrText");
       const employeeElement  = document.getElementById("employeeText");
       const actionElement    = document.getElementById("actionText");
@@ -116,7 +132,17 @@
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const json = await res.json();
 
-                if (!json.success || !json.qr_code) {
+                if (json.fallback && json.qr_code) {
+                  // Aucun véhicule trouvé → QR de secours (133) renvoyé par n8n
+                  isFallback  = true;
+                  qr          = json.qr_code;
+                  vehicule_id = json.qr_code;
+                  qrElement.innerText       = "QR code : " + qr + " (par défaut)";
+                  vehiculeElement.innerText = "⚠️ Aucun véhicule trouvé";
+                  warningElement.innerText  = "⚠️ " + (json.message ||
+                    "Aucun véhicule trouvé. Merci de contacter la dispo pour qu'elle ajoute le véhicule.");
+                  warningElement.style.display = "block";
+                } else if (!json.success || !json.qr_code) {
                   const msg = json.message || "Aucun véhicule détecté";
                   const debug = json.debug && json.debug.closest_outside_range
                     ? ` (plus proche : ${json.debug.closest_outside_range.name} à ${json.debug.closest_outside_range.distance}m)`
@@ -124,15 +150,15 @@
                   statusElement.innerText = "❌ " + msg + debug + " Veuillez scanner un QR code.";
                   statusElement.className = "error";
                   return;
+                } else {
+                  // Le véhicule détecté : qr_code = CP de la table qr_code
+                  qr          = json.qr_code;
+                  vehicule_id = json.qr_code;
+                  qrElement.innerText       = "QR code : " + qr + " (auto-détecté)";
+                  vehiculeElement.innerText =
+                    "🚐 " + (json.vehicle_description || json.vehicle_name) +
+                    " (~" + Math.round(json.distance_m) + "m)";
                 }
-
-                // Le véhicule détecté : qr_code = CP de la table qr_code
-                qr          = json.qr_code;
-                vehicule_id = json.qr_code;
-                qrElement.innerText       = "QR code : " + qr + " (auto-détecté)";
-                vehiculeElement.innerText =
-                  "🚐 " + (json.vehicle_description || json.vehicle_name) +
-                  " (~" + Math.round(json.distance_m) + "m)";
               } catch (err) {
                 statusElement.innerText = "❌ Erreur détection véhicule : " + err.message;
                 statusElement.className = "error";
@@ -162,7 +188,7 @@
               dates:        dateLocale,
               heures:       heureLocale,
               timestamp:    now.toISOString(),
-              auto_detected: autoDetect    // flag pour traçabilité
+              auto_detected: autoDetect && !isFallback    // flag pour traçabilité
             };
 
             try {
@@ -181,7 +207,8 @@
                 };
                 statusElement.innerText = messages[action] || "✅ Enregistré.";
                 statusElement.className = "ok";
-                redirectToApp(3);
+                // Laisse plus de temps pour lire l'avertissement en cas de QR par défaut
+                redirectToApp(isFallback ? 10 : 3);
               } else {
                 statusElement.innerText = "Erreur lors de l'envoi : " + result;
                 statusElement.className = "error";
