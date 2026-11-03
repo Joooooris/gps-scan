@@ -62,7 +62,7 @@
       const WORKER_URL     = "https://calm-unit-e415.j-simon.workers.dev";
       const NEAREST_URL    = "https://n8n-cbc.ch/webhook/nearest-vehicle";
       const BUDIBASE_URL   = "https://cbcsalaires.budibase.app/app/default%20workspace/cbcheures#/saisie-des-heures-";
-      const MAX_DISTANCE_M = 100;
+      const MAX_DISTANCE_M = 250;
 
       const params       = new URLSearchParams(window.location.search);
       let   qr           = params.get("qr");
@@ -125,7 +125,8 @@
 
             // ── Mode GPS auto : détecter le véhicule le plus proche via Logifleet
             if (autoDetect) {
-              statusElement.innerText = "🔍 Recherche du véhicule à proximité...";
+              // n8n relance Logifleet jusqu'à 2 fois (5 s d'attente) si rien n'est trouvé
+              statusElement.innerText = "🔍 Recherche du véhicule à proximité... (jusqu'à ~15 s)";
               try {
                 const url = `${NEAREST_URL}?lat=${lat}&lng=${lng}&max=${MAX_DISTANCE_M}`;
                 const res = await fetch(url);
